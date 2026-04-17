@@ -1,7 +1,46 @@
 import * as esbuild from 'esbuild';
-import { copyFileSync } from 'fs';
+import { copyFileSync, readFileSync, mkdirSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const watch = process.argv.includes('--watch');
+
+// Load .env file from repo root
+function loadEnv() {
+  const envPath = join(__dirname, '..', '.env');
+  try {
+    const envContent = readFileSync(envPath, 'utf-8');
+    const env = {};
+
+    envContent.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        env[key.trim()] = valueParts.join('=').trim();
+      }
+    });
+
+    return env;
+  } catch (error) {
+    console.error('Warning: Could not read .env file:', error.message);
+    return {};
+  }
+}
+
+const env = loadEnv();
+
+// Create define object for esbuild
+const define = {
+  'INJECTED_OPENAI_API_KEY': JSON.stringify(env.OPENAI_API_KEY || ''),
+  'INJECTED_OBSIDIAN_API_KEY': JSON.stringify(env.OBSIDIAN_API_KEY || ''),
+  'INJECTED_OBSIDIAN_URL': JSON.stringify(env.OBSIDIAN_URL || ''),
+  'INJECTED_OBSIDIAN_FOLDER': JSON.stringify(env.OBSIDIAN_FOLDER || ''),
+};
 
 const config = {
   bundle: true,
@@ -9,7 +48,11 @@ const config = {
   sourcemap: watch ? 'inline' : false,
   target: 'es2020',
   format: 'esm',
+  define,
 };
+
+// Ensure dist directory exists
+mkdirSync('dist', { recursive: true });
 
 const contexts = await Promise.all([
   esbuild.context({
@@ -43,4 +86,5 @@ if (watch) {
   copyFileSync('popup/popup.html', 'dist/popup.html');
 
   console.log('Build complete!');
+  console.log('Environment variables injected:', Object.keys(define).join(', '));
 }

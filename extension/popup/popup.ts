@@ -4,13 +4,6 @@ interface ProcessingState {
   error?: string;
 }
 
-interface LLMConfig {
-  baseURL: string;
-  model: string;
-  apiKey: string;
-  obsidianPort?: number;
-}
-
 interface ExtractResponse {
   success: boolean;
   article?: {
@@ -33,18 +26,8 @@ interface StateUpdateMessage {
 }
 
 const digestBtn = document.getElementById("digestBtn") as HTMLButtonElement;
-const settingsBtn = document.getElementById("settingsBtn") as HTMLButtonElement;
-const saveSettingsBtn = document.getElementById("saveSettingsBtn") as HTMLButtonElement;
-const backBtn = document.getElementById("backBtn") as HTMLButtonElement;
 const statusDiv = document.getElementById("status") as HTMLDivElement;
 const progressDiv = document.getElementById("progress") as HTMLDivElement;
-const mainView = document.getElementById("mainView") as HTMLDivElement;
-const settingsView = document.getElementById("settingsView") as HTMLDivElement;
-
-const baseURLInput = document.getElementById("baseURL") as HTMLInputElement;
-const modelInput = document.getElementById("model") as HTMLInputElement;
-const apiKeyInput = document.getElementById("apiKey") as HTMLInputElement;
-const obsidianPortInput = document.getElementById("obsidianPort") as HTMLInputElement;
 
 // Load initial state
 chrome.runtime.sendMessage({ type: "GET_STATE" }, (state: ProcessingState) => {
@@ -102,40 +85,6 @@ digestBtn.addEventListener("click", async () => {
     digestBtn.disabled = false;
     progressDiv.classList.add("hidden");
   }
-});
-
-settingsBtn.addEventListener("click", () => {
-  mainView.classList.add("hidden");
-  settingsView.classList.remove("hidden");
-
-  // Load current config
-  chrome.runtime.sendMessage({ type: "GET_CONFIG" }, (config: LLMConfig | null) => {
-    if (config) {
-      baseURLInput.value = config.baseURL || "";
-      modelInput.value = config.model || "";
-      apiKeyInput.value = config.apiKey || "";
-      obsidianPortInput.value = String(config.obsidianPort || 27123);
-    }
-  });
-});
-
-saveSettingsBtn.addEventListener("click", () => {
-  const config = {
-    baseURL: baseURLInput.value,
-    model: modelInput.value,
-    apiKey: apiKeyInput.value,
-    obsidianPort: parseInt(obsidianPortInput.value) || 27123,
-  };
-
-  chrome.runtime.sendMessage({ type: "SAVE_CONFIG", config }, () => {
-    settingsView.classList.add("hidden");
-    mainView.classList.remove("hidden");
-  });
-});
-
-backBtn.addEventListener("click", () => {
-  settingsView.classList.add("hidden");
-  mainView.classList.remove("hidden");
 });
 
 function updateProgress(state: ProcessingState) {

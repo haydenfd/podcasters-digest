@@ -1,12 +1,6 @@
 import { buildPrompt } from "../shared/prompt.js";
 import { writeNote } from "../shared/writer.js";
-
-interface LLMConfig {
-  baseURL: string;
-  model: string;
-  apiKey: string;
-  obsidianPort?: number;
-}
+import { PROVIDER, ENV } from "../shared/config.js";
 
 interface ProcessingState {
   status: "extracting" | "calling_llm" | "writing" | "done" | "error";
@@ -38,20 +32,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((error) => sendResponse({ success: false, error: error.message }));
     return true; // Keep channel open for async response
   }
-
-  if (message.type === "GET_CONFIG") {
-    chrome.storage.local.get(["llmConfig"], (result) => {
-      sendResponse(result.llmConfig || null);
-    });
-    return true;
-  }
-
-  if (message.type === "SAVE_CONFIG") {
-    chrome.storage.local.set({ llmConfig: message.config }, () => {
-      sendResponse({ success: true });
-    });
-    return true;
-  }
 });
 
 async function processArticle(article: { title: string; content: string; url: string }) {
@@ -60,26 +40,20 @@ async function processArticle(article: { title: string; content: string; url: st
     currentState = { status: "extracting", message: "Extracting article content..." };
     broadcastState();
 
-    // Get LLM config
-    const config = await getConfig();
-    if (!config) {
-      throw new Error("LLM configuration not set. Please configure in the extension settings.");
-    }
-
     // Update state: calling LLM
     currentState = { status: "calling_llm", message: "Sending to LLM..." };
     broadcastState();
 
     const prompt = buildPrompt(article.content, article.title, article.url);
 
-    const res = await fetch(`${config.baseURL}/chat/completions`, {
+    const res = await fetch(`${PROVIDER.baseURL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${config.apiKey}`,
+        "Authorization": `Bearer ${ENV.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: config.model,
+        model: PROVIDER.model,
         max_completion_tokens: 8192,
         stream: false,
         messages: [{ role: "user", content: prompt }],
@@ -102,7 +76,7 @@ async function processArticle(article: { title: string; content: string; url: st
     currentState = { status: "writing", message: "Writing to Obsidian..." };
     broadcastState();
 
-    const writeResult = await writeNote(summaryMd, article.title, config.obsidianPort);
+    const writeResult = await writeNote(summaryMd, article.title);
 
     if (!writeResult.success) {
       throw new Error(writeResult.error || "Failed to write note");
@@ -126,14 +100,6 @@ async function processArticle(article: { title: string; content: string; url: st
 
     throw error;
   }
-}
-
-async function getConfig(): Promise<LLMConfig | null> {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(["llmConfig"], (result) => {
-      resolve(result.llmConfig || null);
-    });
-  });
 }
 
 function broadcastState() {

@@ -75,13 +75,49 @@ const PROVIDER = {
 
 ## Browser Extension
 
+### Prerequisites
+
+1. **Obsidian** with [Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) plugin installed and enabled
+2. **Create your target folder** in Obsidian (e.g., "Podcasts" or "Digest")
+3. **Get your Obsidian API key** from the Local REST API plugin settings
+
+### Configuration
+
+Create a `.env` file in the repo root (copy from `.env.example`):
+
+```bash
+# OpenAI API Key (or other LLM provider)
+OPENAI_API_KEY=sk-...
+
+# Obsidian Local REST API Configuration
+OBSIDIAN_API_KEY=your_api_key_here
+OBSIDIAN_URL=https://127.0.0.1:27124
+OBSIDIAN_FOLDER=Podcasts
+```
+
+**Important:** Configuration is injected at build time from `.env`. No runtime settings UI - edit `.env` and rebuild.
+
+### Swap LLM Provider
+
+Edit `extension/shared/config.ts`:
+
+```ts
+export const PROVIDER = {
+  baseURL: "https://api.openai.com/v1",
+  model: "gpt-5.4",
+  apiKeyEnv: "OPENAI_API_KEY",
+};
+```
+
+Then add the corresponding API key to `.env`.
+
 ### Build
 
 ```bash
 npm run build:extension
 ```
 
-This creates `extension/dist/` with the bundled extension.
+This reads `.env`, injects values at compile time, and creates `extension/dist/`.
 
 ### Load in browser
 
@@ -96,34 +132,21 @@ This creates `extension/dist/` with the bundled extension.
 - Click "Load Temporary Add-on"
 - Select any file in `extension/dist`
 
-### Configure
-
-1. Click the extension icon
-2. Click "Settings"
-3. Enter your LLM config:
-   - **Base URL**: e.g., `https://api.openai.com/v1`
-   - **Model**: e.g., `gpt-4o`
-   - **API Key**: Your API key
-   - **Obsidian Port**: Default `27123`
-
-### Prerequisites for extension
-
-- **Obsidian** with [Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) plugin enabled
-- Create a "Digest" folder in your Obsidian vault
-
 ### Usage
 
 1. Navigate to any Substack article
 2. Extension icon shows green checkmark if article detected
 3. Click icon → "Digest Article"
 4. Watch progress: Extracting → LLM → Writing → Done
-5. Note appears in `Digest/YYYY-MM-DD-article-title.md`
+5. Note appears in `Podcasts/YYYY-MM-DD-article-title.md` (or your configured folder)
 
 ### Development
 
 ```bash
 npm run watch:extension
 ```
+
+Watches for changes and rebuilds automatically. You'll need to reload the extension in your browser after each rebuild.
 
 ---
 

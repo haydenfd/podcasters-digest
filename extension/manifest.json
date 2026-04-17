@@ -5,10 +5,12 @@
   "description": "Transform Substack articles into structured notes in Obsidian",
   "permissions": [
     "activeTab",
-    "storage"
+    "scripting"
   ],
   "host_permissions": [
-    "*://*.substack.com/*"
+    "*://*.substack.com/*",
+    "https://127.0.0.1:27124/*",
+    "https://api.openai.com/*"
   ],
   "background": {
     "service_worker": "background.js",

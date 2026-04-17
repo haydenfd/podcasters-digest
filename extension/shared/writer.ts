@@ -1,3 +1,5 @@
+import { ENV } from "./config.js";
+
 function slugify(title: string): string {
   return title
     .toLowerCase()
@@ -9,8 +11,7 @@ function slugify(title: string): string {
 
 export async function writeNote(
   summaryMd: string,
-  title: string,
-  obsidianPort: number = 27123
+  title: string
 ): Promise<{ success: boolean; path?: string; error?: string }> {
   const today = new Date().toISOString().split("T")[0];
   const filename = `${today}-${slugify(title)}.md`;
@@ -18,10 +19,11 @@ export async function writeNote(
 
   try {
     const response = await fetch(
-      `http://localhost:${obsidianPort}/vault/Digest/${filename}`,
+      `${ENV.OBSIDIAN_URL}/vault/${ENV.OBSIDIAN_FOLDER}/${filename}`,
       {
-        method: "POST",
+        method: "PUT",
         headers: {
+          "Authorization": `Bearer ${ENV.OBSIDIAN_API_KEY}`,
           "Content-Type": "text/markdown",
         },
         body: finalMd,
@@ -38,7 +40,7 @@ export async function writeNote(
 
     return {
       success: true,
-      path: `Digest/${filename}`,
+      path: `${ENV.OBSIDIAN_FOLDER}/${filename}`,
     };
   } catch (error) {
     return {
