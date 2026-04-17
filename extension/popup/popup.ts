@@ -58,8 +58,18 @@ digestBtn.addEventListener("click", async () => {
       throw new Error("No active tab found");
     }
 
+    // Check if we're on a Substack page
+    if (!tab.url || !tab.url.includes('substack.com')) {
+      throw new Error("Please navigate to a Substack article first");
+    }
+
     // Request article extraction from content script
-    const response = await chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_ARTICLE" }) as ExtractResponse;
+    let response: ExtractResponse;
+    try {
+      response = await chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_ARTICLE" }) as ExtractResponse;
+    } catch (e) {
+      throw new Error("Content script not loaded. Try refreshing the Substack page.");
+    }
 
     if (!response.success) {
       throw new Error(response.error || "Failed to extract article");
