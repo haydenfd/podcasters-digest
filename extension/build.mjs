@@ -52,21 +52,25 @@ const config = {
 };
 
 // Ensure dist directory exists
-mkdirSync('dist', { recursive: true });
+const distDir = join(__dirname, 'dist');
+mkdirSync(distDir, { recursive: true });
 
 const contexts = await Promise.all([
   esbuild.context({
     ...config,
+    absWorkingDir: __dirname,
     entryPoints: ['background/background.ts'],
     outfile: 'dist/background.js',
   }),
   esbuild.context({
     ...config,
+    absWorkingDir: __dirname,
     entryPoints: ['content/content.ts'],
     outfile: 'dist/content.js',
   }),
   esbuild.context({
     ...config,
+    absWorkingDir: __dirname,
     entryPoints: ['popup/popup.ts'],
     outfile: 'dist/popup.js',
   }),
@@ -82,8 +86,8 @@ if (watch) {
   }));
 
   // Copy static files
-  copyFileSync('manifest.json', 'dist/manifest.json');
-  copyFileSync('popup/popup.html', 'dist/popup.html');
+  copyFileSync(join(__dirname, 'manifest.json'), join(distDir, 'manifest.json'));
+  copyFileSync(join(__dirname, 'popup', 'popup.html'), join(distDir, 'popup.html'));
 
   console.log('Build complete!');
   console.log('Environment variables injected:', Object.keys(define).join(', '));
