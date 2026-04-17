@@ -6,11 +6,11 @@ import { writeNote } from "./writer.js";
 // --- SWAP PROVIDER HERE ---
 // Groq (free):    baseURL = "https://api.groq.com/openai/v1"   model = "llama-3.3-70b-versatile"  apiKeyEnv = "GROQ_API_KEY"
 // OpenAI:         baseURL = "https://api.openai.com/v1"         model = "gpt-4o"                    apiKeyEnv = "OPENAI_API_KEY"
-// Ollama (local): baseURL = "http://localhost:11434/v1"          model = "gemma3"                    apiKeyEnv = "OLLAMA_API_KEY" (set to any string)
+// Ollama (local): baseURL = "http://localhost:11434/v1"          model = "gemma4"                    apiKeyEnv = "OLLAMA_API_KEY" (set to any string)
 const PROVIDER = {
-  baseURL: "https://api.groq.com/openai/v1",
-  model: "llama-3.3-70b-versatile",
-  apiKeyEnv: "GROQ_API_KEY",
+  baseURL: "https://api.openai.com/v1",
+  model: "gpt-5.4",
+  apiKeyEnv: "OPENAI_API_KEY",
 };
 
 function loadTranscript(filePath: string): string {
@@ -25,7 +25,7 @@ function loadTranscript(filePath: string): string {
 function parseArgs(): { transcriptPath: string; title: string; source: string } {
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    console.error("Usage: npm start <transcript.txt> [--title 'Episode Title'] [--source 'URL']");
+    console.error("Usage: npm start -- <transcript.txt> [--title 'Episode Title'] [--source 'URL']");
     process.exit(1);
   }
 
@@ -61,7 +61,8 @@ async function summarize(transcript: string, title: string, source: string): Pro
     },
     body: JSON.stringify({
       model: PROVIDER.model,
-      max_tokens: 8192,
+      max_completion_tokens: 8192,
+      stream: false,
       messages: [{ role: "user", content: prompt }],
     }),
   });
@@ -72,11 +73,11 @@ async function summarize(transcript: string, title: string, source: string): Pro
     process.exit(1);
   }
 
-  const data = await res.json() as {
-    choices: { message: { content: string } }[];
-  };
+  const json = await res.json();
+  const content = json.choices?.[0]?.message?.content ?? "";
 
-  return data.choices[0]?.message?.content ?? "";
+  console.log("\n" + content + "\n");
+  return content;
 }
 
 async function main() {
@@ -86,13 +87,13 @@ async function main() {
   const wordCount = transcript.split(/\s+/).length;
   console.log(`[1/3] Loaded transcript: ${wordCount.toLocaleString()} words`);
 
-  console.log(`[2/3] Sending to ${PROVIDER.model}...`);
+  console.log(`[2/3] Streaming from ${PROVIDER.model}...`);
   const summaryMd = await summarize(transcript, title, source);
 
   console.log("[3/3] Writing note...");
   const notePath = writeNote(summaryMd, title);
 
-  console.log(`\n✓ Done → ${notePath}`);
+  console.log(`✓ Done → ${notePath}`);
 }
 
 main();
