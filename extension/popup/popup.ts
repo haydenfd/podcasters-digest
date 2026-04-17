@@ -1,12 +1,12 @@
 interface ProcessingState {
-  status: "extracting" | "calling_llm" | "writing" | "done" | "error";
+  status: "extracting" | "writing" | "done" | "error";
   message: string;
   error?: string;
 }
 
 interface ExtractResponse {
   success: boolean;
-  article?: {
+  content?: {
     title: string;
     content: string;
     url: string;
@@ -14,7 +14,7 @@ interface ExtractResponse {
   error?: string;
 }
 
-interface ProcessResponse {
+interface SaveResponse {
   success: boolean;
   path?: string;
   error?: string;
@@ -47,7 +47,7 @@ digestBtn.addEventListener("click", async () => {
   try {
     digestBtn.disabled = true;
     statusDiv.className = "status processing";
-    statusDiv.textContent = "Starting...";
+    statusDiv.textContent = "Extracting...";
     statusDiv.classList.remove("hidden");
     progressDiv.classList.remove("hidden");
 
@@ -58,27 +58,22 @@ digestBtn.addEventListener("click", async () => {
       throw new Error("No active tab found");
     }
 
-    // Check if we're on a Substack page
-    if (!tab.url || !tab.url.includes('substack.com')) {
-      throw new Error("Please navigate to a Substack article first");
-    }
-
-    // Request article extraction from content script
+    // Request content extraction from content script
     let response: ExtractResponse;
     try {
-      response = await chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_ARTICLE" }) as ExtractResponse;
+      response = await chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_CONTENT" }) as ExtractResponse;
     } catch (e) {
-      throw new Error("Content script not loaded. Try refreshing the Substack page.");
+      throw new Error("Content script not loaded. Try refreshing the page.");
     }
 
     if (!response.success) {
-      throw new Error(response.error || "Failed to extract article");
+      throw new Error(response.error || "Failed to extract content");
     }
 
-    // Send to background for processing
+    // Send to background to save
     chrome.runtime.sendMessage(
-      { type: "PROCESS_ARTICLE", article: response.article },
-      (result: ProcessResponse) => {
+      { type: "SAVE_CONTENT", content: response.content },
+      (result: SaveResponse) => {
         if (result.success) {
           statusDiv.className = "status success";
           statusDiv.textContent = `Success! Saved to ${result.path}`;
@@ -102,7 +97,6 @@ function updateProgress(state: ProcessingState) {
     document.getElementById("step1"),
     document.getElementById("step2"),
     document.getElementById("step3"),
-    document.getElementById("step4"),
   ];
 
   // Reset all steps
@@ -114,13 +108,9 @@ function updateProgress(state: ProcessingState) {
 
   if (state.status === "extracting" && steps[0]) {
     steps[0].className = "step active";
-  } else if (state.status === "calling_llm") {
-    if (steps[0]) steps[0].className = "step done";
-    if (steps[1]) steps[1].className = "step active";
   } else if (state.status === "writing") {
     if (steps[0]) steps[0].className = "step done";
-    if (steps[1]) steps[1].className = "step done";
-    if (steps[2]) steps[2].className = "step active";
+    if (steps[1]) steps[1].className = "step active";
   } else if (state.status === "done") {
     steps.forEach((step) => {
       if (step) step.className = "step done";

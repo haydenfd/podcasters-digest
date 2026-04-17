@@ -10,12 +10,30 @@ function slugify(title: string): string {
 }
 
 export async function writeNote(
-  summaryMd: string,
-  title: string
+  htmlContent: string,
+  title: string,
+  sourceUrl: string
 ): Promise<{ success: boolean; path?: string; error?: string }> {
   const today = new Date().toISOString().split("T")[0];
   const filename = `${today}-${slugify(title)}.md`;
-  const finalMd = summaryMd.replace("{{DATE}}", today) ?? summaryMd;
+
+  // Create simple markdown with metadata
+  const markdown = `---
+title: ${title}
+source: ${sourceUrl}
+date: ${today}
+extracted: true
+---
+
+# ${title}
+
+**Source:** ${sourceUrl}
+**Date:** ${today}
+
+---
+
+${htmlContent}
+`;
 
   try {
     const response = await fetch(
@@ -26,7 +44,7 @@ export async function writeNote(
           "Authorization": `Bearer ${ENV.OBSIDIAN_API_KEY}`,
           "Content-Type": "text/markdown",
         },
-        body: finalMd,
+        body: markdown,
       }
     );
 
