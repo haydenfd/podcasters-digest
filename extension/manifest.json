@@ -9,7 +9,7 @@
   ],
   "host_permissions": [
     "<all_urls>",
-    "https://127.0.0.1:27124/*"
+    "http://127.0.0.1:27123/*"
   ],
   "background": {
     "scripts": ["background.js"],
