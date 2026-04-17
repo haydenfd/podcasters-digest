@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Digest",
   "version": "1.0.0",
-  "description": "Extract page content and save to Obsidian",
+  "description": "Transform articles into structured notes in Obsidian",
   "permissions": [
     "activeTab",
     "scripting"
@@ -23,7 +23,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Extract to Obsidian"
+    "default_title": "Digest Article"
   },
   "icons": {
     "16": "icon16.png",
