@@ -3,10 +3,15 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
     "outDir": "dist",
-    "rootDir": "pipeline/src",
     "strict": true,
     "skipLibCheck": true,
-    "types": ["node"]
-  }
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "types": ["node", "chrome"]
+  },
+  "include": ["pipeline/**/*", "extension/**/*"],
+  "exclude": ["node_modules", "dist", "extension/dist"]
 }
