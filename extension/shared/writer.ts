@@ -10,14 +10,14 @@ function slugify(title: string): string {
 }
 
 export async function writeNote(
-  htmlContent: string,
+  textContent: string,
   title: string,
   sourceUrl: string
 ): Promise<{ success: boolean; path?: string; error?: string }> {
   const today = new Date().toISOString().split("T")[0];
   const filename = `${today}-${slugify(title)}.md`;
 
-  // Create simple markdown with metadata
+  // Create simple markdown with metadata and cleaned content
   const markdown = `---
 title: ${title}
 source: ${sourceUrl}
@@ -27,12 +27,12 @@ extracted: true
 
 # ${title}
 
-**Source:** ${sourceUrl}
+**Source:** [${sourceUrl}](${sourceUrl})
 **Date:** ${today}
 
 ---
 
-${htmlContent}
+${textContent}
 `;
 
   try {

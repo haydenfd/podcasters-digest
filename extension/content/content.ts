@@ -1,41 +1,22 @@
-// Extract page content
+import { Readability } from "@mozilla/readability";
+
+// Extract page content using Readability
 function extractContent(): { title: string; content: string; url: string } | null {
   try {
-    const title = document.title || 'Untitled';
+    // Clone the document so Readability doesn't modify the actual page
+    const documentClone = document.cloneNode(true) as Document;
+    const reader = new Readability(documentClone);
+    const article = reader.parse();
 
-    // Get main content - try common content containers first
-    const contentSelectors = [
-      'article',
-      'main',
-      '[role="main"]',
-      '.post-content',
-      '.article-content',
-      '.content',
-      'body'
-    ];
-
-    let contentElement: Element | null = null;
-    for (const selector of contentSelectors) {
-      const element = document.querySelector(selector);
-      if (element && element.textContent && element.textContent.trim().length > 200) {
-        contentElement = element;
-        break;
-      }
+    if (!article) {
+      console.error('Readability failed to parse article');
+      return null;
     }
 
-    if (!contentElement) {
-      contentElement = document.body;
-    }
-
-    // Get the full HTML content
-    const htmlContent = contentElement.innerHTML;
-
-    // Also get plain text version
-    const textContent = contentElement.textContent || '';
-
+    // Return cleaned text content
     return {
-      title,
-      content: htmlContent,
+      title: article.title || document.title || 'Untitled',
+      content: article.textContent, // Clean text, no HTML
       url: window.location.href,
     };
   } catch (error) {
