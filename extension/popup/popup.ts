@@ -1,16 +1,6 @@
 interface ProcessingState {
-  status: "extracting" | "writing" | "done" | "error";
+  status: "fetching" | "writing" | "done" | "error";
   message: string;
-  error?: string;
-}
-
-interface ExtractResponse {
-  success: boolean;
-  content?: {
-    title: string;
-    content: string;
-    url: string;
-  };
   error?: string;
 }
 
@@ -47,32 +37,20 @@ digestBtn.addEventListener("click", async () => {
   try {
     digestBtn.disabled = true;
     statusDiv.className = "status processing";
-    statusDiv.textContent = "Extracting...";
+    statusDiv.textContent = "Processing...";
     statusDiv.classList.remove("hidden");
     progressDiv.classList.remove("hidden");
 
-    // Get active tab
+    // Get active tab URL
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    if (!tab.id) {
-      throw new Error("No active tab found");
+    if (!tab.url) {
+      throw new Error("No URL found in active tab");
     }
 
-    // Request content extraction from content script
-    let response: ExtractResponse;
-    try {
-      response = await chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_CONTENT" }) as ExtractResponse;
-    } catch (e) {
-      throw new Error("Content script not loaded. Try refreshing the page.");
-    }
-
-    if (!response.success) {
-      throw new Error(response.error || "Failed to extract content");
-    }
-
-    // Send to background to save
+    // Send URL to background for Jina processing
     chrome.runtime.sendMessage(
-      { type: "SAVE_CONTENT", content: response.content },
+      { type: "PROCESS_URL", url: tab.url },
       (result: SaveResponse) => {
         if (result.success) {
           statusDiv.className = "status success";
@@ -106,7 +84,7 @@ function updateProgress(state: ProcessingState) {
     }
   });
 
-  if (state.status === "extracting" && steps[0]) {
+  if (state.status === "fetching" && steps[0]) {
     steps[0].className = "step active";
   } else if (state.status === "writing") {
     if (steps[0]) steps[0].className = "step done";

@@ -1,7 +1,7 @@
 import { writeNote } from "../shared/writer.js";
 
 interface ProcessingState {
-  status: "extracting" | "writing" | "done" | "error";
+  status: "fetching" | "writing" | "done" | "error";
   message: string;
   error?: string;
 }
@@ -24,25 +24,47 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse(currentState);
   }
 
-  if (message.type === "SAVE_CONTENT") {
-    saveContent(message.content)
+  if (message.type === "PROCESS_URL") {
+    processUrl(message.url)
       .then((result) => sendResponse(result))
       .catch((error) => sendResponse({ success: false, error: error.message }));
     return true; // Keep channel open for async response
   }
 });
 
-async function saveContent(content: { title: string; content: string; url: string }) {
+async function processUrl(url: string) {
   try {
-    // Update state: extracting
-    currentState = { status: "extracting", message: "Extracting content..." };
+    // Update state: fetching
+    currentState = { status: "fetching", message: "Fetching content from Jina Reader..." };
     broadcastState();
+
+    // Fetch from Jina Reader
+    const jinaUrl = `https://r.jina.ai/${url}`;
+    const response = await fetch(jinaUrl, {
+      method: "GET",
+      headers: {
+        "Accept": "text/markdown",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Jina Reader failed (${response.status}): ${response.statusText}`);
+    }
+
+    const markdown = await response.text();
+
+    if (!markdown || markdown.trim().length === 0) {
+      throw new Error("Jina Reader returned empty content");
+    }
+
+    // Extract title from URL or markdown
+    const title = extractTitle(url, markdown);
 
     // Update state: writing
     currentState = { status: "writing", message: "Writing to Obsidian..." };
     broadcastState();
 
-    const writeResult = await writeNote(content.content, content.title, content.url);
+    const writeResult = await writeNote(markdown, title, url);
 
     if (!writeResult.success) {
       throw new Error(writeResult.error || "Failed to write note");
@@ -59,12 +81,30 @@ async function saveContent(content: { title: string; content: string; url: strin
   } catch (error) {
     currentState = {
       status: "error",
-      message: "Save failed",
+      message: "Processing failed",
       error: error instanceof Error ? error.message : String(error),
     };
     broadcastState();
 
     throw error;
+  }
+}
+
+function extractTitle(url: string, markdown: string): string {
+  // Try to extract title from first # heading in markdown
+  const titleMatch = markdown.match(/^#\s+(.+)$/m);
+  if (titleMatch) {
+    return titleMatch[1].trim();
+  }
+
+  // Fallback to URL-based title
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const lastSegment = pathname.split('/').filter(s => s).pop() || 'page';
+    return lastSegment.replace(/-/g, ' ').replace(/\.html?$/, '');
+  } catch {
+    return 'Untitled';
   }
 }
 
