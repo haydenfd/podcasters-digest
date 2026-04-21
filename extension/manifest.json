@@ -5,7 +5,8 @@
   "description": "Transform articles into structured notes in Obsidian",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>",
