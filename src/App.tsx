@@ -9,8 +9,8 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-background text-white">
-      <header className="flex items-center px-6 py-3 border-b border-gray-800">
-        <h1 className="text-lg font-serif italic text-white">Podcaster's Digest</h1>
+      <header className="flex items-center px-8 py-5 border-b border-gray-800">
+        <h1 className="text-2xl font-serif text-white tracking-tight">Podcaster's Digest</h1>
       </header>
 
       <nav className="flex border-b border-gray-800">

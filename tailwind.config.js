@@ -11,7 +11,7 @@ export default {
         accent: '#b8f02a',
       },
       fontFamily: {
-        serif: ['"Instrument Serif"', 'serif'],
+        serif: ['"Newsreader"', 'serif'],
         sans: ['"Instrument Sans"', 'sans-serif'],
         mono: ['"DM Mono"', 'monospace'],
       },
