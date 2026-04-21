@@ -149,8 +149,27 @@ export default function DigestView() {
   };
 
   return (
-    <div className="flex flex-col h-full relative">
-      <div className="p-6">
+    <div className="flex flex-col h-full relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Radial gradient */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
+
+        {/* Large watermark text */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none">
+          <span className="text-[180px] font-serif text-white/[0.02] whitespace-nowrap">
+            Digest
+          </span>
+        </div>
+
+        {/* Dot pattern */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{
+          backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+          backgroundSize: '40px 40px'
+        }} />
+      </div>
+
+      <div className="p-6 relative z-10">
         <input
           type="text"
           value={url}
