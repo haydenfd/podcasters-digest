@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { Store } from '@tauri-apps/plugin-store';
 
 export interface Digest {
@@ -19,56 +18,61 @@ interface AppState {
   addDigest: (digest: Digest) => void;
   updateDigest: (id: string, updates: Partial<Digest>) => void;
   setView: (view: View) => void;
+  loadDigests: () => Promise<void>;
 }
 
 let storeInstance: Store | null = null;
 
 const getStore = async () => {
   if (!storeInstance) {
-    storeInstance = await Store.load('store.json');
+    storeInstance = await Store.load('digests.json');
   }
   return storeInstance;
 };
 
-const tauriStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    const store = await getStore();
-    const value = await store.get<string>(name);
-    return value ?? null;
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    const store = await getStore();
-    await store.set(name, value);
-    await store.save();
-  },
-  removeItem: async (name: string): Promise<void> => {
-    const store = await getStore();
-    await store.delete(name);
-    await store.save();
-  },
+const saveDigests = async (digests: Digest[]) => {
+  const store = await getStore();
+  await store.set('digests', digests);
+  await store.save();
 };
 
-export const useStore = create<AppState>()(
-  persist(
-    (set) => ({
-      digests: [],
-      currentView: 'digest',
-      addDigest: (digest: Digest) =>
-        set((state) => ({
-          digests: [digest, ...state.digests],
-        })),
-      updateDigest: (id: string, updates: Partial<Digest>) =>
-        set((state) => ({
-          digests: state.digests.map((digest) =>
-            digest.id === id ? { ...digest, ...updates } : digest
-          ),
-        })),
-      setView: (view: View) => set({ currentView: view }),
-    }),
-    {
-      name: 'app-storage',
-      storage: createJSONStorage(() => tauriStorage),
-      partialize: (state) => ({ digests: state.digests }),
-    }
-  )
-);
+const loadDigests = async (): Promise<Digest[]> => {
+  try {
+    const store = await getStore();
+    const digests = await store.get<Digest[]>('digests');
+    return digests ?? [];
+  } catch (error) {
+    console.error('Failed to load digests:', error);
+    return [];
+  }
+};
+
+export const useStore = create<AppState>()((set, get) => ({
+  digests: [],
+  currentView: 'digest',
+
+  loadDigests: async () => {
+    const digests = await loadDigests();
+    set({ digests });
+  },
+
+  addDigest: (digest: Digest) => {
+    set((state) => {
+      const newDigests = [digest, ...state.digests];
+      saveDigests(newDigests);
+      return { digests: newDigests };
+    });
+  },
+
+  updateDigest: (id: string, updates: Partial<Digest>) => {
+    set((state) => {
+      const newDigests = state.digests.map((digest) =>
+        digest.id === id ? { ...digest, ...updates } : digest
+      );
+      saveDigests(newDigests);
+      return { digests: newDigests };
+    });
+  },
+
+  setView: (view: View) => set({ currentView: view }),
+}));

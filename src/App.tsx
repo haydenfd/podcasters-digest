@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useStore } from './store/useStore';
 import DigestView from './components/DigestView';
 import LibraryView from './components/LibraryView';
@@ -6,6 +7,11 @@ import SettingsView from './components/SettingsView';
 function App() {
   const currentView = useStore((state) => state.currentView);
   const setView = useStore((state) => state.setView);
+  const loadDigests = useStore((state) => state.loadDigests);
+
+  useEffect(() => {
+    loadDigests();
+  }, [loadDigests]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-white">
