@@ -9,6 +9,10 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-background text-white">
+      <header className="flex items-center px-6 py-3 border-b border-gray-800">
+        <h1 className="text-lg font-serif italic text-white">Podcaster's Digest</h1>
+      </header>
+
       <nav className="flex border-b border-gray-800">
         <button
           onClick={() => setView('digest')}
@@ -18,7 +22,7 @@ function App() {
               : 'text-gray-500 hover:text-gray-300'
           }`}
         >
-          digest
+          Digest
         </button>
         <button
           onClick={() => setView('library')}
@@ -28,7 +32,7 @@ function App() {
               : 'text-gray-500 hover:text-gray-300'
           }`}
         >
-          library
+          Library
         </button>
         <button
           onClick={() => setView('settings')}
@@ -38,7 +42,7 @@ function App() {
               : 'text-gray-500 hover:text-gray-300'
           }`}
         >
-          settings
+          Settings
         </button>
       </nav>
 
