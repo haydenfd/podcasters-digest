@@ -1,50 +1,53 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import { useStore } from './store/useStore';
+import DigestView from './components/DigestView';
+import LibraryView from './components/LibraryView';
+import SettingsView from './components/SettingsView';
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  const currentView = useStore((state) => state.currentView);
+  const setView = useStore((state) => state.setView);
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <div className="flex flex-col h-screen bg-background text-white">
+      <nav className="flex border-b border-gray-800">
+        <button
+          onClick={() => setView('digest')}
+          className={`flex-1 px-6 py-4 font-sans text-sm transition-colors ${
+            currentView === 'digest'
+              ? 'text-white border-b-2 border-accent'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          digest
+        </button>
+        <button
+          onClick={() => setView('library')}
+          className={`flex-1 px-6 py-4 font-sans text-sm transition-colors ${
+            currentView === 'library'
+              ? 'text-white border-b-2 border-accent'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          library
+        </button>
+        <button
+          onClick={() => setView('settings')}
+          className={`flex-1 px-6 py-4 font-sans text-sm transition-colors ${
+            currentView === 'settings'
+              ? 'text-white border-b-2 border-accent'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          settings
+        </button>
+      </nav>
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+      <main className="flex-1 overflow-hidden">
+        {currentView === 'digest' && <DigestView />}
+        {currentView === 'library' && <LibraryView />}
+        {currentView === 'settings' && <SettingsView />}
+      </main>
+    </div>
   );
 }
 
