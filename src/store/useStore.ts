@@ -17,6 +17,7 @@ interface AppState {
   digests: Digest[];
   currentView: View;
   addDigest: (digest: Digest) => void;
+  updateDigest: (id: string, updates: Partial<Digest>) => void;
   setView: (view: View) => void;
 }
 
@@ -55,6 +56,12 @@ export const useStore = create<AppState>()(
       addDigest: (digest: Digest) =>
         set((state) => ({
           digests: [digest, ...state.digests],
+        })),
+      updateDigest: (id: string, updates: Partial<Digest>) =>
+        set((state) => ({
+          digests: state.digests.map((digest) =>
+            digest.id === id ? { ...digest, ...updates } : digest
+          ),
         })),
       setView: (view: View) => set({ currentView: view }),
     }),

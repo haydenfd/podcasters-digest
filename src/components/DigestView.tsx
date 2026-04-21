@@ -10,7 +10,10 @@ export default function DigestView() {
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
   const [showNotification, setShowNotification] = useState(false);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const addDigest = useStore((state) => state.addDigest);
+  const digests = useStore((state) => state.digests);
+  const updateDigest = useStore((state) => state.updateDigest);
 
   useEffect(() => {
     if (showNotification) {
@@ -26,6 +29,17 @@ export default function DigestView() {
   const handleDigest = async () => {
     if (!url.trim()) return;
 
+    // Check if URL already exists
+    const existingDigest = digests.find(d => d.url === url.trim());
+    if (existingDigest) {
+      setShowDuplicateModal(true);
+      return;
+    }
+
+    await performDigest();
+  };
+
+  const performDigest = async (overwrite: boolean = false) => {
     try {
       setPhase('fetching');
       setProgress(33);
@@ -39,14 +53,25 @@ export default function DigestView() {
       const urlObj = new URL(url);
       const title = extractTitle(content);
 
-      addDigest({
-        id: Date.now().toString(),
-        title,
-        url,
-        domain: urlObj.hostname,
-        summary: content,
-        timestamp: Date.now(),
-      });
+      if (overwrite) {
+        const existingDigest = digests.find(d => d.url === url.trim());
+        if (existingDigest && updateDigest) {
+          updateDigest(existingDigest.id, {
+            title,
+            summary: content,
+            timestamp: Date.now(),
+          });
+        }
+      } else {
+        addDigest({
+          id: Date.now().toString(),
+          title,
+          url,
+          domain: urlObj.hostname,
+          summary: content,
+          timestamp: Date.now(),
+        });
+      }
 
       setPhase('saved');
       setProgress(100);
@@ -59,6 +84,15 @@ export default function DigestView() {
         setPhase('idle');
       }, 3000);
     }
+  };
+
+  const handleOverwrite = async () => {
+    setShowDuplicateModal(false);
+    await performDigest(true);
+  };
+
+  const handleCancelOverwrite = () => {
+    setShowDuplicateModal(false);
   };
 
   const extractTitle = (markdown: string): string => {
@@ -156,6 +190,31 @@ export default function DigestView() {
       {showNotification && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-background px-6 py-3 rounded-lg shadow-lg font-sans text-sm font-semibold animate-fade-in z-50">
           ✓ Saved to library
+        </div>
+      )}
+
+      {showDuplicateModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-serif italic text-white mb-2">Already Digested</h3>
+            <p className="text-sm text-gray-400 font-sans mb-6">
+              This URL has already been digested. Do you want to overwrite the existing entry?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleOverwrite}
+                className="flex-1 px-4 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 transition-all font-sans text-sm"
+              >
+                Yes
+              </button>
+              <button
+                onClick={handleCancelOverwrite}
+                className="flex-1 px-4 py-2 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-700 transition-all font-sans text-sm"
+              >
+                No
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

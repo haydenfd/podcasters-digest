@@ -72,10 +72,10 @@ export default function LibraryView() {
             <button
               key={digest.id}
               onClick={() => setSelectedDigest(digest)}
-              className="w-full p-4 border-b border-gray-800 hover:bg-gray-900/50 transition-colors text-left flex items-start gap-3"
+              className="w-full p-4 border-b border-gray-800 hover:bg-gray-900/50 transition-colors text-left flex items-center gap-3"
             >
               <div
-                className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
                   isFresh(digest.timestamp) ? 'bg-accent' : 'bg-gray-700'
                 }`}
               />
