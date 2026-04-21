@@ -18,6 +18,7 @@ interface StateUpdateMessage {
 interface DigestEntry {
   title: string;
   domain: string;
+  url: string;
   timestamp: number;
 }
 
@@ -111,22 +112,16 @@ digestBtn.addEventListener("click", async () => {
     // Send URL to background for Jina processing
     chrome.runtime.sendMessage(
       { type: "PROCESS_URL", url: tab.url },
-      async (result: SaveResponse) => {
+      (result: SaveResponse) => {
         if (result.success) {
-          // Add to library
-          const url = new URL(tab.url!);
-          await addToLibrary({
-            title: extractTitleFromUrl(tab.url!),
-            domain: url.hostname,
-            timestamp: Date.now()
-          });
-
           // Show success
           updateProgressPhase("Done.", 100, "saved to obsidian");
 
+          // Refresh library after a moment
           setTimeout(() => {
+            renderLibrary();
             resetUI();
-          }, 2000);
+          }, 1000);
         } else {
           updateProgressPhase("Error", 0, result.error || "failed");
           setTimeout(() => {
@@ -168,44 +163,18 @@ function updateProgressPhase(phase: string, percent: number, sub: string) {
   progressSub.textContent = sub;
 }
 
-function extractTitleFromUrl(url: string): string {
-  try {
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname;
-    const lastSegment = pathname.split('/').filter(s => s).pop() || 'page';
-    return lastSegment
-      .replace(/-/g, ' ')
-      .replace(/\.html?$/, '')
-      .replace(/\b\w/g, l => l.toUpperCase());
-  } catch {
-    return 'Untitled';
-  }
-}
-
-// Library functions
-async function addToLibrary(entry: DigestEntry) {
-  return new Promise<void>((resolve) => {
-    chrome.storage.local.get([STORAGE_KEY], (result) => {
-      const digests: DigestEntry[] = result[STORAGE_KEY] || [];
-      digests.unshift(entry); // Add to beginning
-      chrome.storage.local.set({ [STORAGE_KEY]: digests }, () => {
-        resolve();
-      });
-    });
-  });
-}
 
 function renderLibrary() {
-  chrome.storage.local.get([STORAGE_KEY], (result) => {
-    const digests: DigestEntry[] = result[STORAGE_KEY] || [];
+  chrome.storage.local.get(['pd_digests'], (result) => {
+    const digests: DigestEntry[] = result.pd_digests || [];
 
     if (digests.length === 0) {
-      libraryEmpty.classList.remove('hidden');
+      libraryEmpty.style.display = 'block';
       libraryList.innerHTML = '';
       return;
     }
 
-    libraryEmpty.classList.add('hidden');
+    libraryEmpty.style.display = 'none';
     libraryList.innerHTML = digests.map(entry => {
       const isFresh = Date.now() - entry.timestamp < 5 * 60 * 1000; // 5 minutes
       const timeAgo = formatTimeAgo(entry.timestamp);
@@ -214,8 +183,8 @@ function renderLibrary() {
         <div class="library-item">
           <div class="library-dot ${isFresh ? '' : 'old'}"></div>
           <div class="library-content">
-            <div class="library-title">${entry.title}</div>
-            <div class="library-meta">${entry.domain} · ${timeAgo}</div>
+            <div class="library-title">${escapeHtml(entry.title)}</div>
+            <div class="library-meta">${escapeHtml(entry.domain)} · ${timeAgo}</div>
           </div>
           <div class="library-arrow">
             <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -226,6 +195,12 @@ function renderLibrary() {
       `;
     }).join('');
   });
+}
+
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function formatTimeAgo(timestamp: number): string {

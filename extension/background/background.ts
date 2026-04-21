@@ -77,6 +77,21 @@ async function processUrl(url: string) {
     };
     broadcastState();
 
+    // Save to library storage
+    const urlObj = new URL(url);
+    const digestEntry = {
+      title: title,
+      domain: urlObj.hostname,
+      url: url,
+      timestamp: Date.now()
+    };
+
+    chrome.storage.local.get(['pd_digests'], (result) => {
+      const existing = result.pd_digests || [];
+      existing.unshift(digestEntry);
+      chrome.storage.local.set({ pd_digests: existing });
+    });
+
     return { success: true, path: writeResult.path };
   } catch (error) {
     currentState = {
