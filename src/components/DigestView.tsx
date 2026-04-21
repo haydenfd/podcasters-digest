@@ -62,10 +62,25 @@ export default function DigestView() {
   };
 
   const extractTitle = (markdown: string): string => {
-    const titleMatch = markdown.match(/^#\s+(.+)$/m);
+    // Try to match first H1 heading
+    const h1Match = markdown.match(/^#\s+(.+)$/m);
+    if (h1Match) {
+      return h1Match[1].trim();
+    }
+
+    // Try to match Title: format
+    const titleMatch = markdown.match(/^Title:\s*(.+)$/m);
     if (titleMatch) {
       return titleMatch[1].trim();
     }
+
+    // Try first line if it's text
+    const lines = markdown.trim().split('\n');
+    const firstLine = lines.find(line => line.trim().length > 0);
+    if (firstLine && firstLine.length < 100) {
+      return firstLine.replace(/^[#\s]+/, '').trim();
+    }
+
     return 'Untitled';
   };
 
@@ -102,23 +117,22 @@ export default function DigestView() {
   return (
     <div className="flex flex-col h-full relative">
       <div className="p-6">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleDigest()}
-            placeholder="Paste URL here..."
-            className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent font-sans text-sm"
-          />
-          <button
-            onClick={handleDigest}
-            disabled={!url.trim() || (phase !== 'idle' && phase !== 'saved')}
-            className="px-6 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-sans text-sm"
-          >
-            Digest
-          </button>
-        </div>
+        <input
+          type="text"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleDigest()}
+          placeholder="Paste URL here..."
+          className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent font-sans text-sm"
+        />
+
+        <button
+          onClick={handleDigest}
+          disabled={!url.trim() || (phase !== 'idle' && phase !== 'saved')}
+          className="mt-3 w-full px-6 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-sans text-sm"
+        >
+          Digest
+        </button>
 
         {(phase !== 'idle' && phase !== 'saved') && (
           <div className="mt-4">
@@ -140,7 +154,7 @@ export default function DigestView() {
       </div>
 
       {showNotification && (
-        <div className="absolute top-6 right-6 bg-accent text-background px-4 py-2 rounded-lg shadow-lg font-sans text-sm font-semibold animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-background px-6 py-3 rounded-lg shadow-lg font-sans text-sm font-semibold animate-fade-in z-50">
           ✓ Saved to library
         </div>
       )}

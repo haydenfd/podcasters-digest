@@ -33,18 +33,20 @@ export default function LibraryView() {
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-6">
-          <h1 className="text-2xl font-serif italic text-white mb-2">
-            {selectedDigest.title}
-          </h1>
-          <div className="flex items-center gap-2 text-sm text-gray-500 font-mono mb-6">
-            <span>{selectedDigest.domain}</span>
-            <span>·</span>
-            <span>{formatTimeAgo(selectedDigest.timestamp)}</span>
-          </div>
-          <div className="prose prose-invert prose-sm max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {selectedDigest.summary}
-            </ReactMarkdown>
+          <div className="max-w-2xl mx-auto">
+            <h1 className="text-2xl font-serif italic text-white mb-2">
+              {selectedDigest.title}
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-gray-500 font-mono mb-8">
+              <span>{selectedDigest.domain}</span>
+              <span>·</span>
+              <span>{formatTimeAgo(selectedDigest.timestamp)}</span>
+            </div>
+            <div className="prose prose-invert prose-sm max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {selectedDigest.summary}
+              </ReactMarkdown>
+            </div>
           </div>
         </div>
       </div>
