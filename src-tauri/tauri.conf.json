@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "Podcaster's Digest",
   "version": "0.1.0",
-  "identifier": "com.haydenfd.tauri-app",
+  "identifier": "com.haydenfd.podcasters-digest",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,12 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-app",
-        "width": 800,
-        "height": 600
+        "title": "Podcaster's Digest",
+        "width": 420,
+        "height": 680,
+        "resizable": true,
+        "minWidth": 380,
+        "minHeight": 500
       }
     ],
     "security": {
