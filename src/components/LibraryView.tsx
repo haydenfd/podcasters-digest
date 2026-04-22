@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ChevronRight } from 'lucide-react';
 import { useStore, Digest } from '../store/useStore';
 
 export default function LibraryView() {
@@ -67,42 +68,29 @@ export default function LibraryView() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {digests.map((digest) => (
             <button
               key={digest.id}
               onClick={() => setSelectedDigest(digest)}
-              className="w-full p-4 border-b border-gray-800 hover:bg-gray-900/50 transition-colors text-left flex items-center gap-3"
+              className="w-full rounded-lg px-4 py-3 hover:bg-zinc-900/50 transition-all duration-150 active:scale-[0.99] text-left flex items-center gap-3 group"
             >
               <div
-                className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  isFresh(digest.timestamp) ? 'bg-accent' : 'bg-gray-700'
+                className={`w-2 h-2 rounded-full flex-shrink-0 mt-1 ${
+                  isFresh(digest.timestamp) ? 'bg-accent' : 'bg-zinc-700'
                 }`}
               />
               <div className="flex-1 min-w-0">
-                <div className="font-sans text-white mb-1 truncate">{digest.title}</div>
-                <div className="font-mono text-xs text-gray-500 flex items-center gap-2">
+                <div className="font-medium text-white mb-1 truncate group-hover:text-accent transition-colors">
+                  {digest.title}
+                </div>
+                <div className="text-sm text-zinc-400 flex items-center gap-2">
                   <span className="truncate">{digest.domain}</span>
                   <span>·</span>
                   <span>{formatTimeAgo(digest.timestamp)}</span>
                 </div>
               </div>
-              <div className="text-gray-600 flex-shrink-0">
-                <svg
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4"
-                >
-                  <path
-                    d="M5 3l4 4-4 4"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
+              <ChevronRight size={18} className="text-zinc-600 group-hover:text-zinc-400 flex-shrink-0 transition-colors" />
             </button>
           ))}
         </div>

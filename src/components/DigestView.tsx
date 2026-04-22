@@ -1,30 +1,32 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { Loader2, CheckCircle2, Link } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 type ProcessingPhase = 'idle' | 'fetching' | 'processing' | 'saved' | 'error';
+type ButtonState = 'idle' | 'loading' | 'success';
 
 export default function DigestView() {
   const [url, setUrl] = useState('');
   const [phase, setPhase] = useState<ProcessingPhase>('idle');
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showNotification, setShowNotification] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastTitle, setToastTitle] = useState('');
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [buttonState, setButtonState] = useState<ButtonState>('idle');
   const addDigest = useStore((state) => state.addDigest);
   const digests = useStore((state) => state.digests);
   const updateDigest = useStore((state) => state.updateDigest);
 
   useEffect(() => {
-    if (showNotification) {
+    if (showToast) {
       const timer = setTimeout(() => {
-        setShowNotification(false);
-        setPhase('idle');
-        setUrl('');
-      }, 2000);
+        setShowToast(false);
+      }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [showNotification]);
+  }, [showToast]);
 
   const handleDigest = async () => {
     if (!url.trim()) return;
@@ -41,6 +43,7 @@ export default function DigestView() {
 
   const performDigest = async (overwrite: boolean = false) => {
     try {
+      setButtonState('loading');
       setPhase('fetching');
       setProgress(33);
       setErrorMessage('');
@@ -75,11 +78,20 @@ export default function DigestView() {
 
       setPhase('saved');
       setProgress(100);
-      setShowNotification(true);
+      setButtonState('success');
+      setToastTitle(title);
+      setShowToast(true);
+
+      setTimeout(() => {
+        setButtonState('idle');
+        setPhase('idle');
+        setUrl('');
+      }, 1500);
     } catch (error) {
       setPhase('error');
       setProgress(0);
       setErrorMessage(error as string);
+      setButtonState('idle');
       setTimeout(() => {
         setPhase('idle');
       }, 3000);
@@ -150,33 +162,46 @@ export default function DigestView() {
 
   return (
     <div className="flex flex-col h-full relative">
-      <div className="p-8">
+      <div className="p-8 space-y-6">
         <div className="flex gap-3 items-center max-w-3xl mx-auto">
-          <div className="relative flex-1">
+          <div className="relative flex-1 flex items-center">
+            <Link size={18} className="absolute left-4 text-zinc-500" />
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleDigest()}
               placeholder="Paste URL here..."
-              className="w-full pl-4 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-accent transition-all duration-150 font-sans text-base"
+              className="w-full pl-12 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-accent/30 focus:border-accent transition-all duration-150 font-sans text-base"
             />
           </div>
 
           <button
             onClick={handleDigest}
-            disabled={!url.trim() || (phase !== 'idle' && phase !== 'saved')}
-            className="px-6 py-3 bg-accent text-background font-semibold rounded-xl hover:bg-[#c5f944] active:bg-[#a3d620] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 font-sans text-base whitespace-nowrap shadow-lg shadow-accent/10"
+            disabled={buttonState !== 'idle' || !url.trim()}
+            className="px-6 py-3 bg-accent text-background font-semibold rounded-xl hover:bg-[#c5f944] active:bg-[#a3d620] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150 font-sans text-base whitespace-nowrap shadow-lg shadow-accent/10 flex items-center gap-2 min-w-[140px] justify-center"
           >
-            Digest
+            {buttonState === 'loading' && (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Digesting...</span>
+              </>
+            )}
+            {buttonState === 'success' && (
+              <>
+                <CheckCircle2 size={16} />
+                <span>Saved</span>
+              </>
+            )}
+            {buttonState === 'idle' && <span>Digest</span>}
           </button>
         </div>
 
         {(phase !== 'idle' && phase !== 'saved') && (
-          <div className="mt-6 max-w-3xl mx-auto">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-mono text-xs text-zinc-400">{getPhaseText()}</span>
-              <span className="font-mono text-xs text-zinc-500">{progress}%</span>
+          <div className="max-w-3xl mx-auto space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-zinc-400">{getPhaseText()}</span>
+              <span className="text-sm text-zinc-500">{progress}%</span>
             </div>
             <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
               <div
@@ -186,20 +211,24 @@ export default function DigestView() {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="mt-1.5 font-mono text-xs text-zinc-500">{getSubText()}</div>
+            <div className="text-xs text-zinc-500">{getSubText()}</div>
           </div>
         )}
       </div>
 
-      {showNotification && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-background px-6 py-3 rounded-xl shadow-2xl shadow-accent/20 font-sans text-sm font-semibold animate-fade-in z-50 border border-accent/20">
-          ✓ Saved to library
+      {showToast && (
+        <div className="fixed top-4 right-4 bg-zinc-900/90 backdrop-blur border border-zinc-700 rounded-lg px-4 py-3 shadow-lg flex items-start gap-3 z-50 animate-slide-in">
+          <CheckCircle2 size={20} className="text-accent mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-white text-sm">Saved to library</div>
+            <div className="text-sm text-zinc-400 truncate">{toastTitle}</div>
+          </div>
         </div>
       )}
 
       {showDuplicateModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl animate-scale-in">
             <h3 className="text-lg font-serif text-white mb-2">Already Digested</h3>
             <p className="text-sm text-zinc-400 font-sans mb-6">
               This URL has already been digested. Do you want to overwrite the existing entry?
