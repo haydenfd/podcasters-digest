@@ -151,22 +151,24 @@ export default function DigestView() {
   return (
     <div className="flex flex-col h-full relative">
       <div className="p-6">
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleDigest()}
-          placeholder="Paste URL here..."
-          className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent font-sans text-sm"
-        />
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleDigest()}
+            placeholder="Paste URL here..."
+            className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent font-sans text-sm"
+          />
 
-        <button
-          onClick={handleDigest}
-          disabled={!url.trim() || (phase !== 'idle' && phase !== 'saved')}
-          className="mt-3 w-full px-6 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-sans text-sm"
-        >
-          Digest
-        </button>
+          <button
+            onClick={handleDigest}
+            disabled={!url.trim() || (phase !== 'idle' && phase !== 'saved')}
+            className="px-6 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-sans text-sm whitespace-nowrap"
+          >
+            Digest
+          </button>
+        </div>
 
         {(phase !== 'idle' && phase !== 'saved') && (
           <div className="mt-4">
