@@ -7,11 +7,26 @@ import SettingsView from './components/SettingsView';
 
 function App() {
   const currentView = useStore((state) => state.currentView);
+  const previousView = useStore((state) => state.previousView);
   const setView = useStore((state) => state.setView);
 
   useEffect(() => {
     useStore.getState().loadDigests();
   }, []);
+
+  const getViewIndex = (view: string) => {
+    const views = ['digest', 'library', 'settings'];
+    return views.indexOf(view);
+  };
+
+  const getSlideDirection = () => {
+    if (!previousView) return '';
+    const prevIndex = getViewIndex(previousView);
+    const currIndex = getViewIndex(currentView);
+    return currIndex > prevIndex ? 'slide-left' : 'slide-right';
+  };
+
+  const slideDirection = getSlideDirection();
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-[#121214] to-background text-white">
@@ -55,10 +70,12 @@ function App() {
         </button>
       </nav>
 
-      <main className="flex-1 overflow-hidden">
-        {currentView === 'digest' && <DigestView />}
-        {currentView === 'library' && <LibraryView />}
-        {currentView === 'settings' && <SettingsView />}
+      <main className="flex-1 overflow-hidden relative">
+        <div key={currentView} className={`absolute inset-0 ${slideDirection}`}>
+          {currentView === 'digest' && <DigestView />}
+          {currentView === 'library' && <LibraryView />}
+          {currentView === 'settings' && <SettingsView />}
+        </div>
       </main>
     </div>
   );

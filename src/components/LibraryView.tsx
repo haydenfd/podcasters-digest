@@ -75,11 +75,6 @@ export default function LibraryView() {
               onClick={() => setSelectedDigest(digest)}
               className="w-full rounded-lg px-4 py-3 hover:bg-zinc-900/50 transition-all duration-150 active:scale-[0.99] text-left flex items-center gap-3 group"
             >
-              <div
-                className={`w-2 h-2 rounded-full flex-shrink-0 mt-1 ${
-                  isFresh(digest.timestamp) ? 'bg-accent' : 'bg-zinc-700'
-                }`}
-              />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-white mb-1 truncate group-hover:text-accent transition-colors">
                   {digest.title}

@@ -15,6 +15,7 @@ type View = 'digest' | 'library' | 'settings';
 interface AppState {
   digests: Digest[];
   currentView: View;
+  previousView: View | null;
   addDigest: (digest: Digest) => void;
   updateDigest: (id: string, updates: Partial<Digest>) => void;
   setView: (view: View) => void;
@@ -56,6 +57,7 @@ const loadDigests = async (): Promise<Digest[]> => {
 export const useStore = create<AppState>()((set, get) => ({
   digests: [],
   currentView: 'digest',
+  previousView: null,
 
   loadDigests: async () => {
     const digests = await loadDigests();
@@ -65,7 +67,7 @@ export const useStore = create<AppState>()((set, get) => ({
   addDigest: (digest: Digest) => {
     const newDigests = [digest, ...get().digests];
     set({ digests: newDigests });
-    saveDigests(newDigests); // Fire and forget - async save happens in background
+    saveDigests(newDigests);
   },
 
   updateDigest: (id: string, updates: Partial<Digest>) => {
@@ -73,8 +75,11 @@ export const useStore = create<AppState>()((set, get) => ({
       digest.id === id ? { ...digest, ...updates } : digest
     );
     set({ digests: newDigests });
-    saveDigests(newDigests); // Fire and forget - async save happens in background
+    saveDigests(newDigests);
   },
 
-  setView: (view: View) => set({ currentView: view }),
+  setView: (view: View) => {
+    const currentView = get().currentView;
+    set({ previousView: currentView, currentView: view });
+  },
 }));
