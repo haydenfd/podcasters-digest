@@ -11,15 +11,19 @@ export interface Digest {
 }
 
 type View = 'digest' | 'library' | 'settings';
+export type Theme = 'system' | 'light' | 'dark';
 
 interface AppState {
   digests: Digest[];
   currentView: View;
   previousView: View | null;
+  theme: Theme;
   addDigest: (digest: Digest) => void;
   updateDigest: (id: string, updates: Partial<Digest>) => void;
   setView: (view: View) => void;
+  setTheme: (theme: Theme) => void;
   loadDigests: () => Promise<void>;
+  loadSettings: () => Promise<void>;
 }
 
 let storeInstance: Store | null = null;
@@ -54,14 +58,43 @@ const loadDigests = async (): Promise<Digest[]> => {
   }
 };
 
+const saveTheme = async (theme: Theme) => {
+  try {
+    const store = await getStore();
+    await store.set('theme', theme);
+    await store.save();
+    console.log('Saved theme to storage:', theme);
+  } catch (error) {
+    console.error('Failed to save theme:', error);
+  }
+};
+
+const loadTheme = async (): Promise<Theme> => {
+  try {
+    const store = await getStore();
+    const theme = await store.get<Theme>('theme');
+    console.log('Loaded theme from storage:', theme ?? 'system');
+    return theme ?? 'system';
+  } catch (error) {
+    console.error('Failed to load theme:', error);
+    return 'system';
+  }
+};
+
 export const useStore = create<AppState>()((set, get) => ({
   digests: [],
   currentView: 'digest',
   previousView: null,
+  theme: 'system',
 
   loadDigests: async () => {
     const digests = await loadDigests();
     set({ digests });
+  },
+
+  loadSettings: async () => {
+    const theme = await loadTheme();
+    set({ theme });
   },
 
   addDigest: (digest: Digest) => {
@@ -81,5 +114,10 @@ export const useStore = create<AppState>()((set, get) => ({
   setView: (view: View) => {
     const currentView = get().currentView;
     set({ previousView: currentView, currentView: view });
+  },
+
+  setTheme: (theme: Theme) => {
+    set({ theme });
+    saveTheme(theme);
   },
 }));

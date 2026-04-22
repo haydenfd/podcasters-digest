@@ -12,6 +12,7 @@ function App() {
 
   useEffect(() => {
     useStore.getState().loadDigests();
+    useStore.getState().loadSettings();
   }, []);
 
   const getViewIndex = (view: string) => {
@@ -34,13 +35,13 @@ function App() {
         <h1 className="text-2xl font-serif text-white tracking-tight">Podcaster's Digest</h1>
       </header>
 
-      <nav className="flex border-b border-zinc-800/50 bg-black/20">
+      <nav className="flex border-b border-zinc-800/50 bg-black/20 relative">
         <button
           onClick={() => setView('digest')}
           className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'digest'
-              ? 'text-white border-b-2 border-accent font-semibold'
-              : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
+              ? 'text-white font-semibold'
+              : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
           <FileText size={16} />
@@ -50,8 +51,8 @@ function App() {
           onClick={() => setView('library')}
           className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'library'
-              ? 'text-white border-b-2 border-accent font-semibold'
-              : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
+              ? 'text-white font-semibold'
+              : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
           <BookOpen size={16} />
@@ -61,13 +62,22 @@ function App() {
           onClick={() => setView('settings')}
           className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'settings'
-              ? 'text-white border-b-2 border-accent font-semibold'
-              : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
+              ? 'text-white font-semibold'
+              : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
           <SettingsIcon size={16} />
           <span>Settings</span>
         </button>
+
+        {/* Sliding indicator */}
+        <div
+          className="absolute bottom-0 h-0.5 bg-accent transition-all duration-300 ease-out"
+          style={{
+            width: '33.333%',
+            left: `${getViewIndex(currentView) * 33.333}%`
+          }}
+        />
       </nav>
 
       <main className="flex-1 overflow-hidden relative">
