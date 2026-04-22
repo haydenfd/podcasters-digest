@@ -17,33 +17,29 @@ export default function LibraryView() {
     return `${Math.floor(seconds / 86400)}d ago`;
   };
 
-  const isFresh = (timestamp: number): boolean => {
-    return Date.now() - timestamp < 5 * 60 * 1000;
-  };
-
   if (selectedDigest) {
     return (
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-[var(--border)]">
           <button
             onClick={() => setSelectedDigest(null)}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors font-sans text-sm"
+            className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-sans text-sm"
           >
             <span>←</span>
             <span>Back to Library</span>
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-2xl font-serif italic text-white mb-2">
+        <div className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-2xl font-serif italic text-[var(--text-primary)] mb-2">
               {selectedDigest.title}
             </h1>
-            <div className="flex items-center gap-2 text-sm text-gray-500 font-mono mb-8">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-mono mb-8">
               <span>{selectedDigest.domain}</span>
               <span>·</span>
               <span>{formatTimeAgo(selectedDigest.timestamp)}</span>
             </div>
-            <div className="prose prose-invert prose-sm max-w-none">
+            <div className="prose prose-sm max-w-none text-[var(--text-primary)] prose-headings:text-[var(--text-primary)] prose-p:text-[var(--text-primary)] prose-strong:text-[var(--text-primary)] prose-a:text-[var(--text-primary)] prose-blockquote:text-[var(--text-secondary)] prose-code:text-[var(--text-primary)] prose-li:text-[var(--text-primary)]">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {selectedDigest.summary}
               </ReactMarkdown>
@@ -56,13 +52,9 @@ export default function LibraryView() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-6 border-b border-gray-800">
-        <h2 className="text-lg font-serif italic text-white">Library</h2>
-      </div>
-
       {digests.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center text-gray-500 font-mono text-sm">
+          <div className="text-center text-[var(--text-muted)] font-mono text-sm">
             <div className="mb-2">No digests yet</div>
             <div className="text-xs">Create your first digest to get started</div>
           </div>
@@ -73,19 +65,19 @@ export default function LibraryView() {
             <button
               key={digest.id}
               onClick={() => setSelectedDigest(digest)}
-              className="w-full rounded-lg px-4 py-3 hover:bg-zinc-900/50 transition-all duration-150 active:scale-[0.99] text-left flex items-center gap-3 group"
+              className="w-full rounded-lg px-4 py-3 hover:bg-[var(--hover)] transition-all duration-150 active:scale-[0.99] text-left flex items-center gap-3 group"
             >
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-white mb-1 truncate group-hover:text-accent transition-colors">
+                <div className="font-medium text-[var(--text-primary)] mb-1 truncate group-hover:text-[var(--accent-text)] transition-colors">
                   {digest.title}
                 </div>
-                <div className="text-sm text-zinc-400 flex items-center gap-2">
+                <div className="text-sm text-[var(--text-secondary)] flex items-center gap-2">
                   <span className="truncate">{digest.domain}</span>
                   <span>·</span>
                   <span>{formatTimeAgo(digest.timestamp)}</span>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-zinc-600 group-hover:text-zinc-400 flex-shrink-0 transition-colors" />
+              <ChevronRight size={18} className="text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] flex-shrink-0 transition-colors" />
             </button>
           ))}
         </div>

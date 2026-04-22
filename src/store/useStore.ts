@@ -11,7 +11,7 @@ export interface Digest {
 }
 
 type View = 'digest' | 'library' | 'settings';
-export type Theme = 'system' | 'light' | 'dark';
+export type Theme = 'light' | 'dark';
 
 interface AppState {
   digests: Digest[];
@@ -72,12 +72,13 @@ const saveTheme = async (theme: Theme) => {
 const loadTheme = async (): Promise<Theme> => {
   try {
     const store = await getStore();
-    const theme = await store.get<Theme>('theme');
-    console.log('Loaded theme from storage:', theme ?? 'system');
-    return theme ?? 'system';
+    const theme = await store.get<string>('theme');
+    const savedTheme = theme === 'light' || theme === 'dark' ? theme : 'dark';
+    console.log('Loaded theme from storage:', savedTheme);
+    return savedTheme;
   } catch (error) {
     console.error('Failed to load theme:', error);
-    return 'system';
+    return 'dark';
   }
 };
 
@@ -85,7 +86,7 @@ export const useStore = create<AppState>()((set, get) => ({
   digests: [],
   currentView: 'digest',
   previousView: null,
-  theme: 'system',
+  theme: 'dark',
 
   loadDigests: async () => {
     const digests = await loadDigests();

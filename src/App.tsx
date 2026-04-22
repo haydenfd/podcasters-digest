@@ -8,12 +8,17 @@ import SettingsView from './components/SettingsView';
 function App() {
   const currentView = useStore((state) => state.currentView);
   const previousView = useStore((state) => state.previousView);
+  const theme = useStore((state) => state.theme);
   const setView = useStore((state) => state.setView);
 
   useEffect(() => {
     useStore.getState().loadDigests();
     useStore.getState().loadSettings();
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   const getViewIndex = (view: string) => {
     const views = ['digest', 'library', 'settings'];
@@ -30,18 +35,18 @@ function App() {
   const slideDirection = getSlideDirection();
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-[#121214] to-background text-white">
-      <header className="flex items-center px-8 py-5 border-b border-zinc-800/50">
-        <h1 className="text-2xl font-serif text-white tracking-tight">Podcaster's Digest</h1>
+    <div className="flex flex-col h-screen bg-gradient-to-b from-[var(--app-bg-top)] to-[var(--app-bg)] text-[var(--text-primary)]">
+      <header className="flex items-center px-8 py-5 border-b border-[var(--border)]">
+        <h1 className="text-2xl font-serif tracking-tight">Podcaster's Digest</h1>
       </header>
 
-      <nav className="flex border-b border-zinc-800/50 bg-black/20 relative">
+      <nav className="flex border-b border-[var(--border)] bg-[var(--surface-soft)] relative">
         <button
           onClick={() => setView('digest')}
           className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'digest'
-              ? 'text-white font-semibold'
-              : 'text-zinc-500 hover:text-zinc-300'
+              ? 'text-[var(--text-primary)] font-semibold'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
           }`}
         >
           <FileText size={16} />
@@ -51,8 +56,8 @@ function App() {
           onClick={() => setView('library')}
           className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'library'
-              ? 'text-white font-semibold'
-              : 'text-zinc-500 hover:text-zinc-300'
+              ? 'text-[var(--text-primary)] font-semibold'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
           }`}
         >
           <BookOpen size={16} />
@@ -62,8 +67,8 @@ function App() {
           onClick={() => setView('settings')}
           className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'settings'
-              ? 'text-white font-semibold'
-              : 'text-zinc-500 hover:text-zinc-300'
+              ? 'text-[var(--text-primary)] font-semibold'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
           }`}
         >
           <SettingsIcon size={16} />
@@ -72,7 +77,7 @@ function App() {
 
         {/* Sliding indicator */}
         <div
-          className="absolute bottom-0 h-0.5 bg-accent transition-all duration-300 ease-out"
+          className="absolute bottom-0 h-0.5 bg-[var(--accent)] transition-all duration-300 ease-out"
           style={{
             width: '33.333%',
             left: `${getViewIndex(currentView) * 33.333}%`

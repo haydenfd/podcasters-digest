@@ -165,21 +165,21 @@ export default function DigestView() {
       <div className="p-8 space-y-6">
         <div className="flex gap-3 items-center max-w-3xl mx-auto">
           <div className="relative flex-1 flex items-center">
-            <Link size={18} className="absolute left-4 text-zinc-500" />
+            <Link size={18} className="absolute left-4 text-[var(--text-muted)]" />
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleDigest()}
               placeholder="Paste URL here..."
-              className="w-full pl-12 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-accent/30 focus:border-accent transition-all duration-150 font-sans text-base"
+              className="w-full pl-12 pr-4 py-3 bg-[var(--surface)] border border-[var(--border-strong)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] focus:border-[var(--accent)] transition-all duration-150 font-sans text-base"
             />
           </div>
 
           <button
             onClick={handleDigest}
             disabled={buttonState !== 'idle' || !url.trim()}
-            className="px-6 py-3 bg-accent text-background font-semibold rounded-xl hover:bg-[#c5f944] active:bg-[#a3d620] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150 font-sans text-base whitespace-nowrap shadow-lg shadow-accent/10 flex items-center gap-2 min-w-[140px] justify-center"
+            className="px-6 py-3 bg-[var(--accent)] text-[var(--accent-contrast)] font-semibold rounded-xl hover:bg-[var(--accent-hover)] active:bg-[var(--accent-active)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150 font-sans text-base whitespace-nowrap shadow-lg shadow-[var(--accent-shadow)] flex items-center gap-2 min-w-[140px] justify-center"
           >
             {buttonState === 'loading' && (
               <>
@@ -200,49 +200,49 @@ export default function DigestView() {
         {(phase !== 'idle' && phase !== 'saved') && (
           <div className="max-w-3xl mx-auto space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-400">{getPhaseText()}</span>
-              <span className="text-sm text-zinc-500">{progress}%</span>
+              <span className="text-sm text-[var(--text-secondary)]">{getPhaseText()}</span>
+              <span className="text-sm text-[var(--text-muted)]">{progress}%</span>
             </div>
-            <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+            <div className="w-full bg-[var(--surface-strong)] rounded-full h-1.5 overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  phase === 'error' ? 'bg-red-500' : 'bg-accent'
+                  phase === 'error' ? 'bg-red-500' : 'bg-[var(--accent)]'
                 }`}
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="text-xs text-zinc-500">{getSubText()}</div>
+            <div className="text-xs text-[var(--text-muted)]">{getSubText()}</div>
           </div>
         )}
       </div>
 
       {showToast && (
-        <div className="fixed top-4 right-4 bg-zinc-900/90 backdrop-blur border border-zinc-700 rounded-lg px-4 py-3 shadow-lg flex items-start gap-3 z-50 animate-slide-in">
-          <CheckCircle2 size={20} className="text-accent mt-0.5 flex-shrink-0" />
+        <div className="fixed top-4 right-4 bg-[var(--surface)]/90 backdrop-blur border border-[var(--border-strong)] rounded-lg px-4 py-3 shadow-lg flex items-start gap-3 z-50 animate-slide-in">
+          <CheckCircle2 size={20} className="text-[var(--accent-text)] mt-0.5 flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-white text-sm">Saved to library</div>
-            <div className="text-sm text-zinc-400 truncate">{toastTitle}</div>
+            <div className="font-medium text-[var(--text-primary)] text-sm">Saved to library</div>
+            <div className="text-sm text-[var(--text-secondary)] truncate">{toastTitle}</div>
           </div>
         </div>
       )}
 
       {showDuplicateModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl animate-scale-in">
-            <h3 className="text-lg font-serif text-white mb-2">Already Digested</h3>
-            <p className="text-sm text-zinc-400 font-sans mb-6">
+        <div className="fixed inset-0 bg-[var(--overlay)] backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-[var(--surface)] border border-[var(--border-strong)] rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl animate-scale-in">
+            <h3 className="text-lg font-serif text-[var(--text-primary)] mb-2">Already Digested</h3>
+            <p className="text-sm text-[var(--text-secondary)] font-sans mb-6">
               This URL has already been digested. Do you want to overwrite the existing entry?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handleOverwrite}
-                className="flex-1 px-4 py-2.5 bg-accent text-background font-semibold rounded-lg hover:bg-[#c5f944] active:bg-[#a3d620] transition-all duration-150 font-sans text-sm"
+                className="flex-1 px-4 py-2.5 bg-[var(--accent)] text-[var(--accent-contrast)] font-semibold rounded-lg hover:bg-[var(--accent-hover)] active:bg-[var(--accent-active)] transition-all duration-150 font-sans text-sm"
               >
                 Yes
               </button>
               <button
                 onClick={handleCancelOverwrite}
-                className="flex-1 px-4 py-2.5 bg-zinc-800 text-white font-semibold rounded-lg hover:bg-zinc-700 active:bg-zinc-600 transition-all duration-150 font-sans text-sm"
+                className="flex-1 px-4 py-2.5 bg-[var(--surface-strong)] text-[var(--text-primary)] font-semibold rounded-lg hover:bg-[var(--hover)] transition-all duration-150 font-sans text-sm"
               >
                 No
               </button>
