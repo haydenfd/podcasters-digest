@@ -31,15 +31,21 @@ const getStore = async () => {
 };
 
 const saveDigests = async (digests: Digest[]) => {
-  const store = await getStore();
-  await store.set('digests', digests);
-  await store.save();
+  try {
+    const store = await getStore();
+    await store.set('digests', digests);
+    await store.save();
+    console.log('Saved digests to storage:', digests.length);
+  } catch (error) {
+    console.error('Failed to save digests:', error);
+  }
 };
 
 const loadDigests = async (): Promise<Digest[]> => {
   try {
     const store = await getStore();
     const digests = await store.get<Digest[]>('digests');
+    console.log('Loaded digests from storage:', digests?.length ?? 0);
     return digests ?? [];
   } catch (error) {
     console.error('Failed to load digests:', error);
@@ -57,21 +63,17 @@ export const useStore = create<AppState>()((set, get) => ({
   },
 
   addDigest: (digest: Digest) => {
-    set((state) => {
-      const newDigests = [digest, ...state.digests];
-      saveDigests(newDigests);
-      return { digests: newDigests };
-    });
+    const newDigests = [digest, ...get().digests];
+    set({ digests: newDigests });
+    saveDigests(newDigests); // Fire and forget - async save happens in background
   },
 
   updateDigest: (id: string, updates: Partial<Digest>) => {
-    set((state) => {
-      const newDigests = state.digests.map((digest) =>
-        digest.id === id ? { ...digest, ...updates } : digest
-      );
-      saveDigests(newDigests);
-      return { digests: newDigests };
-    });
+    const newDigests = get().digests.map((digest) =>
+      digest.id === id ? { ...digest, ...updates } : digest
+    );
+    set({ digests: newDigests });
+    saveDigests(newDigests); // Fire and forget - async save happens in background
   },
 
   setView: (view: View) => set({ currentView: view }),

@@ -7,11 +7,11 @@ import SettingsView from './components/SettingsView';
 function App() {
   const currentView = useStore((state) => state.currentView);
   const setView = useStore((state) => state.setView);
-  const loadDigests = useStore((state) => state.loadDigests);
 
   useEffect(() => {
-    loadDigests();
-  }, [loadDigests]);
+    // Load persisted digests on app start
+    useStore.getState().loadDigests();
+  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-background text-white">
