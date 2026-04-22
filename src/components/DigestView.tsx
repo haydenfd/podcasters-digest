@@ -150,33 +150,35 @@ export default function DigestView() {
 
   return (
     <div className="flex flex-col h-full relative">
-      <div className="p-6">
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleDigest()}
-            placeholder="Paste URL here..."
-            className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent font-sans text-sm"
-          />
+      <div className="p-8">
+        <div className="flex gap-3 items-center max-w-3xl mx-auto">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleDigest()}
+              placeholder="Paste URL here..."
+              className="w-full pl-4 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-accent transition-all duration-150 font-sans text-base"
+            />
+          </div>
 
           <button
             onClick={handleDigest}
             disabled={!url.trim() || (phase !== 'idle' && phase !== 'saved')}
-            className="px-6 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-sans text-sm whitespace-nowrap"
+            className="px-6 py-3 bg-accent text-background font-semibold rounded-xl hover:bg-[#c5f944] active:bg-[#a3d620] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 font-sans text-base whitespace-nowrap shadow-lg shadow-accent/10"
           >
             Digest
           </button>
         </div>
 
         {(phase !== 'idle' && phase !== 'saved') && (
-          <div className="mt-4">
+          <div className="mt-6 max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-mono text-xs text-gray-400">{getPhaseText()}</span>
-              <span className="font-mono text-xs text-gray-500">{progress}%</span>
+              <span className="font-mono text-xs text-zinc-400">{getPhaseText()}</span>
+              <span className="font-mono text-xs text-zinc-500">{progress}%</span>
             </div>
-            <div className="w-full bg-gray-800 rounded-full h-1 overflow-hidden">
+            <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
                   phase === 'error' ? 'bg-red-500' : 'bg-accent'
@@ -184,34 +186,34 @@ export default function DigestView() {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="mt-1 font-mono text-xs text-gray-500">{getSubText()}</div>
+            <div className="mt-1.5 font-mono text-xs text-zinc-500">{getSubText()}</div>
           </div>
         )}
       </div>
 
       {showNotification && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-background px-6 py-3 rounded-lg shadow-lg font-sans text-sm font-semibold animate-fade-in z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-background px-6 py-3 rounded-xl shadow-2xl shadow-accent/20 font-sans text-sm font-semibold animate-fade-in z-50 border border-accent/20">
           ✓ Saved to library
         </div>
       )}
 
       {showDuplicateModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-serif italic text-white mb-2">Already Digested</h3>
-            <p className="text-sm text-gray-400 font-sans mb-6">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="text-lg font-serif text-white mb-2">Already Digested</h3>
+            <p className="text-sm text-zinc-400 font-sans mb-6">
               This URL has already been digested. Do you want to overwrite the existing entry?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handleOverwrite}
-                className="flex-1 px-4 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 transition-all font-sans text-sm"
+                className="flex-1 px-4 py-2.5 bg-accent text-background font-semibold rounded-lg hover:bg-[#c5f944] active:bg-[#a3d620] transition-all duration-150 font-sans text-sm"
               >
                 Yes
               </button>
               <button
                 onClick={handleCancelOverwrite}
-                className="flex-1 px-4 py-2 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-700 transition-all font-sans text-sm"
+                className="flex-1 px-4 py-2.5 bg-zinc-800 text-white font-semibold rounded-lg hover:bg-zinc-700 active:bg-zinc-600 transition-all duration-150 font-sans text-sm"
               >
                 No
               </button>

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { FileText, BookOpen, Settings as SettingsIcon } from 'lucide-react';
 import { useStore } from './store/useStore';
 import DigestView from './components/DigestView';
 import LibraryView from './components/LibraryView';
@@ -9,46 +10,48 @@ function App() {
   const setView = useStore((state) => state.setView);
 
   useEffect(() => {
-    // Load persisted digests on app start
     useStore.getState().loadDigests();
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-background text-white">
-      <header className="flex items-center px-8 py-5 border-b border-gray-800">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-[#121214] to-background text-white">
+      <header className="flex items-center px-8 py-5 border-b border-zinc-800/50">
         <h1 className="text-2xl font-serif text-white tracking-tight">Podcaster's Digest</h1>
       </header>
 
-      <nav className="flex border-b border-gray-800">
+      <nav className="flex border-b border-zinc-800/50 bg-black/20">
         <button
           onClick={() => setView('digest')}
-          className={`flex-1 px-6 py-4 font-sans text-sm transition-colors ${
+          className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'digest'
-              ? 'text-white border-b-2 border-accent'
-              : 'text-gray-500 hover:text-gray-300'
+              ? 'text-white border-b-2 border-accent font-semibold'
+              : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
           }`}
         >
-          Digest
+          <FileText size={16} />
+          <span>Digest</span>
         </button>
         <button
           onClick={() => setView('library')}
-          className={`flex-1 px-6 py-4 font-sans text-sm transition-colors ${
+          className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'library'
-              ? 'text-white border-b-2 border-accent'
-              : 'text-gray-500 hover:text-gray-300'
+              ? 'text-white border-b-2 border-accent font-semibold'
+              : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
           }`}
         >
-          Library
+          <BookOpen size={16} />
+          <span>Library</span>
         </button>
         <button
           onClick={() => setView('settings')}
-          className={`flex-1 px-6 py-4 font-sans text-sm transition-colors ${
+          className={`flex-1 px-6 py-4 font-sans text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
             currentView === 'settings'
-              ? 'text-white border-b-2 border-accent'
-              : 'text-gray-500 hover:text-gray-300'
+              ? 'text-white border-b-2 border-accent font-semibold'
+              : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
           }`}
         >
-          Settings
+          <SettingsIcon size={16} />
+          <span>Settings</span>
         </button>
       </nav>
 
