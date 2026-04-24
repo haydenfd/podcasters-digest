@@ -18,8 +18,8 @@ interface AppState {
   currentView: View;
   previousView: View | null;
   theme: Theme;
-  addDigest: (digest: Digest) => void;
-  updateDigest: (id: string, updates: Partial<Digest>) => void;
+  addDigest: (digest: Digest) => Promise<void>;
+  updateDigest: (id: string, updates: Partial<Digest>) => Promise<void>;
   setView: (view: View) => void;
   setTheme: (theme: Theme) => void;
   loadDigests: () => Promise<void>;
@@ -98,18 +98,18 @@ export const useStore = create<AppState>()((set, get) => ({
     set({ theme });
   },
 
-  addDigest: (digest: Digest) => {
+  addDigest: async (digest: Digest) => {
     const newDigests = [digest, ...get().digests];
     set({ digests: newDigests });
-    saveDigests(newDigests);
+    await saveDigests(newDigests);
   },
 
-  updateDigest: (id: string, updates: Partial<Digest>) => {
+  updateDigest: async (id: string, updates: Partial<Digest>) => {
     const newDigests = get().digests.map((digest) =>
       digest.id === id ? { ...digest, ...updates } : digest
     );
     set({ digests: newDigests });
-    saveDigests(newDigests);
+    await saveDigests(newDigests);
   },
 
   setView: (view: View) => {

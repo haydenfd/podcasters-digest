@@ -59,14 +59,14 @@ export default function DigestView() {
       if (overwrite) {
         const existingDigest = digests.find(d => d.url === url.trim());
         if (existingDigest && updateDigest) {
-          updateDigest(existingDigest.id, {
+          await updateDigest(existingDigest.id, {
             title,
             summary: content,
             timestamp: Date.now(),
           });
         }
       } else {
-        addDigest({
+        await addDigest({
           id: Date.now().toString(),
           title,
           url,
