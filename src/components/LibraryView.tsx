@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ChevronRight, Search } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, SlidersHorizontal } from 'lucide-react';
 import { useStore, Digest } from '../store/useStore';
 
 const normalizeSearchText = (value: string) =>
@@ -42,6 +42,8 @@ export default function LibraryView() {
   const digests = useStore((state) => state.digests);
   const [selectedDigest, setSelectedDigest] = useState<Digest | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   const formatTimeAgo = (timestamp: number): string => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -57,7 +59,7 @@ export default function LibraryView() {
 
     if (!query) return digests;
 
-    return digests
+    const matchedDigests = digests
       .map((digest) => {
         const titleScore = fuzzyScore(query, digest.title);
         const domainScore = fuzzyScore(query, digest.domain);
@@ -69,7 +71,13 @@ export default function LibraryView() {
       .filter((entry) => entry.score > 0)
       .sort((a, b) => b.score - a.score || b.digest.timestamp - a.digest.timestamp)
       .map((entry) => entry.digest);
-  }, [digests, searchQuery]);
+
+    return matchedDigests.sort((a, b) =>
+      sortOrder === 'recent' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp
+    );
+  }, [digests, searchQuery, sortOrder]);
+
+  const visibleDigestCount = searchQuery.trim() ? filteredDigests.length : digests.length;
 
   if (selectedDigest) {
     return (
@@ -107,27 +115,61 @@ export default function LibraryView() {
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 pt-4 pb-3 border-b border-[var(--border)]">
-        <div className="max-w-5xl mx-auto flex flex-col gap-3">
-          <div className="flex items-end justify-between gap-4">
-            <div className="min-w-0">
-              <div className="text-xs font-mono uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                Library
-              </div>
-              <div className="text-sm text-[var(--text-secondary)] mt-1">
-                {digests.length} {digests.length === 1 ? 'article' : 'articles'} saved
-              </div>
-            </div>
-          </div>
-
-          <div className="relative">
+        <div className="max-w-5xl mx-auto flex items-center gap-3">
+          <div className="relative flex-1">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search titles or sources"
+              placeholder={`Search among ${digests.length} ${digests.length === 1 ? 'title' : 'titles'} or sources`}
               className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] pl-11 pr-4 py-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] focus:border-[var(--accent)] transition-all duration-150"
             />
+          </div>
+
+          <div className="relative flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowSortMenu((current) => !current)}
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover)] transition-all duration-150"
+            >
+              <SlidersHorizontal size={16} className="text-[var(--text-secondary)]" />
+              <span>{sortOrder === 'recent' ? 'Most recent' : 'Oldest first'}</span>
+              <ChevronDown size={15} className={`text-[var(--text-muted)] transition-transform duration-150 ${showSortMenu ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showSortMenu && (
+              <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-44 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-lg shadow-black/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSortOrder('recent');
+                    setShowSortMenu(false);
+                  }}
+                  className={`block w-full px-4 py-3 text-left text-sm transition-colors ${
+                    sortOrder === 'recent'
+                      ? 'bg-[var(--hover)] text-[var(--text-primary)]'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  Most recent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSortOrder('oldest');
+                    setShowSortMenu(false);
+                  }}
+                  className={`block w-full px-4 py-3 text-left text-sm transition-colors ${
+                    sortOrder === 'oldest'
+                      ? 'bg-[var(--hover)] text-[var(--text-primary)]'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  Oldest first
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -149,6 +191,9 @@ export default function LibraryView() {
       ) : (
         <div className="flex-1 overflow-y-auto px-4 py-3">
           <div className="max-w-5xl mx-auto space-y-1.5">
+            <div className="px-1 pb-2 text-xs font-mono uppercase tracking-[0.14em] text-[var(--text-muted)]">
+              Showing {visibleDigestCount} {visibleDigestCount === 1 ? 'result' : 'results'}
+            </div>
           {filteredDigests.map((digest) => (
             <button
               key={digest.id}
