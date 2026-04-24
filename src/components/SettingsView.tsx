@@ -33,13 +33,6 @@ export default function SettingsView() {
               ))}
             </div>
           </div>
-
-          {/* Future settings placeholder */}
-          <div className="pt-8 border-t border-[var(--border)]">
-            <p className="text-sm text-[var(--text-muted)] font-sans text-center">
-              AI summarization features coming soon
-            </p>
-          </div>
         </div>
       </div>
     </div>
