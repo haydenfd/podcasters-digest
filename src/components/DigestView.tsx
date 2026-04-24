@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Loader2, CheckCircle2, Link } from 'lucide-react';
+import { estimateReadingTimeMinutes } from '../lib/readingTime';
 import { useStore } from '../store/useStore';
 
 type ProcessingPhase = 'idle' | 'fetching' | 'processing' | 'saved' | 'error';
@@ -55,6 +56,7 @@ export default function DigestView() {
 
       const urlObj = new URL(url);
       const title = extractTitle(content);
+      const readingTimeMinutes = estimateReadingTimeMinutes(content);
 
       if (overwrite) {
         const existingDigest = digests.find(d => d.url === url.trim());
@@ -63,6 +65,7 @@ export default function DigestView() {
             title,
             summary: content,
             timestamp: Date.now(),
+            readingTimeMinutes,
           });
         }
       } else {
@@ -73,6 +76,7 @@ export default function DigestView() {
           domain: urlObj.hostname,
           summary: content,
           timestamp: Date.now(),
+          readingTimeMinutes,
         });
       }
 

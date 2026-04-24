@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ChevronDown, ChevronRight, Search, SlidersHorizontal } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight,
+  Search,
+  SlidersHorizontal,
+} from 'lucide-react';
+import { estimateReadingTimeMinutes } from '../lib/readingTime';
 import { useStore, Digest } from '../store/useStore';
 
 const normalizeSearchText = (value: string) =>
@@ -41,6 +48,8 @@ const fuzzyScore = (query: string, value: string) => {
 export default function LibraryView() {
   const digests = useStore((state) => state.digests);
   const [selectedDigest, setSelectedDigest] = useState<Digest | null>(null);
+  const [isClosingDetail, setIsClosingDetail] = useState(false);
+  const [listAnimation, setListAnimation] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -57,7 +66,11 @@ export default function LibraryView() {
   const filteredDigests = useMemo(() => {
     const query = searchQuery.trim();
 
-    if (!query) return digests;
+    if (!query) {
+      return [...digests].sort((a, b) =>
+        sortOrder === 'recent' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp
+      );
+    }
 
     const matchedDigests = digests
       .map((digest) => {
@@ -79,20 +92,46 @@ export default function LibraryView() {
 
   const visibleDigestCount = searchQuery.trim() ? filteredDigests.length : digests.length;
 
+  const getReadingTimeLabel = (digest: Digest) => {
+    const minutes = digest.readingTimeMinutes ?? estimateReadingTimeMinutes(digest.summary);
+
+    if (minutes <= 0) return null;
+
+    return `${minutes} min read`;
+  };
+
+  const handleSelectDigest = (digest: Digest) => {
+    setListAnimation('');
+    setSelectedDigest(digest);
+  };
+
+  const handleBackToLibrary = () => {
+    setIsClosingDetail(true);
+
+    window.setTimeout(() => {
+      setSelectedDigest(null);
+      setIsClosingDetail(false);
+      setListAnimation('slide-right');
+
+      window.setTimeout(() => {
+        setListAnimation('');
+      }, 300);
+    }, 220);
+  };
+
   if (selectedDigest) {
     return (
-      <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-[var(--border)]">
-          <button
-            onClick={() => setSelectedDigest(null)}
-            className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-sans text-sm"
-          >
-            <span>←</span>
-            <span>Back to Library</span>
-          </button>
-        </div>
+      <div className={`flex flex-col h-full ${isClosingDetail ? 'slide-out-right' : 'slide-left'}`}>
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-4xl mx-auto">
+            <button
+              onClick={handleBackToLibrary}
+              className="inline-flex items-center gap-2.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-sans text-base font-semibold mb-8"
+            >
+              <ArrowLeft size={18} strokeWidth={2.5} />
+              <span>Back to Library</span>
+            </button>
+
             <h1 className="text-2xl font-serif italic text-[var(--text-primary)] mb-2">
               {selectedDigest.title}
             </h1>
@@ -113,7 +152,7 @@ export default function LibraryView() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={`flex flex-col h-full ${listAnimation}`}>
       <div className="px-4 pt-4 pb-3 border-b border-[var(--border)]">
         <div className="max-w-5xl mx-auto flex items-center gap-3">
           <div className="relative flex-1">
@@ -135,7 +174,10 @@ export default function LibraryView() {
             >
               <SlidersHorizontal size={16} className="text-[var(--text-secondary)]" />
               <span>{sortOrder === 'recent' ? 'Most recent' : 'Oldest first'}</span>
-              <ChevronDown size={15} className={`text-[var(--text-muted)] transition-transform duration-150 ${showSortMenu ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                size={15}
+                className={`text-[var(--text-muted)] transition-transform duration-150 ${showSortMenu ? 'rotate-180' : ''}`}
+              />
             </button>
 
             {showSortMenu && (
@@ -194,25 +236,38 @@ export default function LibraryView() {
             <div className="px-1 pb-2 text-xs font-mono uppercase tracking-[0.14em] text-[var(--text-muted)]">
               Showing {visibleDigestCount} {visibleDigestCount === 1 ? 'result' : 'results'}
             </div>
-          {filteredDigests.map((digest) => (
-            <button
-              key={digest.id}
-              onClick={() => setSelectedDigest(digest)}
-              className="w-full rounded-xl border border-transparent px-4 py-3 hover:bg-[var(--hover)] hover:border-[var(--border)] transition-all duration-150 active:scale-[0.99] text-left flex items-center gap-3 group"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="text-base font-semibold text-[var(--text-primary)] leading-snug truncate group-hover:text-[var(--accent-text)] transition-colors">
-                  {digest.title}
-                </div>
-                <div className="mt-1 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                  <span className="truncate font-medium">{digest.domain}</span>
-                  <span>·</span>
-                  <span>{formatTimeAgo(digest.timestamp)}</span>
-                </div>
-              </div>
-              <ChevronRight size={18} className="text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] flex-shrink-0 transition-colors" />
-            </button>
-          ))}
+            {filteredDigests.map((digest) => {
+              const readingTimeLabel = getReadingTimeLabel(digest);
+
+              return (
+                <button
+                  key={digest.id}
+                  onClick={() => handleSelectDigest(digest)}
+                  className="w-full rounded-xl border border-transparent px-4 py-3 hover:bg-[var(--hover)] hover:border-[var(--border)] transition-all duration-150 active:scale-[0.99] text-left flex items-center gap-3 group"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-base font-semibold text-[var(--text-primary)] leading-snug truncate group-hover:text-[var(--accent-text)] transition-colors">
+                      {digest.title}
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                      <span className="truncate font-medium">{digest.domain}</span>
+                      <span>·</span>
+                      <span>{formatTimeAgo(digest.timestamp)}</span>
+                      {readingTimeLabel && (
+                        <>
+                          <span>·</span>
+                          <span>{readingTimeLabel}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight
+                    size={18}
+                    className="text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] flex-shrink-0 transition-colors"
+                  />
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

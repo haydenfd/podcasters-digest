@@ -134,6 +134,17 @@
     }
   }
 
+  @keyframes slide-to-right {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(12%);
+    }
+  }
+
   .animate-fade-in {
     animation: fade-in 0.2s ease-out;
   }
@@ -152,5 +163,9 @@
 
   .slide-right {
     animation: slide-from-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide-out-right {
+    animation: slide-to-right 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 }

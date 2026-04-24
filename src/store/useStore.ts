@@ -8,6 +8,7 @@ export interface Digest {
   domain: string;
   summary: string;
   timestamp: number;
+  readingTimeMinutes?: number;
 }
 
 type View = 'digest' | 'library' | 'settings';
