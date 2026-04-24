@@ -152,7 +152,7 @@ export default function DigestView() {
   const getSubText = () => {
     switch (phase) {
       case 'fetching':
-        return 'via jina reader';
+        return '';
       case 'processing':
         return 'extracting content';
       case 'saved':
@@ -205,7 +205,6 @@ export default function DigestView() {
           <div className="max-w-3xl mx-auto space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-[var(--text-secondary)]">{getPhaseText()}</span>
-              <span className="text-sm text-[var(--text-muted)]">{progress}%</span>
             </div>
             <div className="w-full bg-[var(--surface-strong)] rounded-full h-1.5 overflow-hidden">
               <div
@@ -215,7 +214,9 @@ export default function DigestView() {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="text-xs text-[var(--text-muted)]">{getSubText()}</div>
+            {getSubText() && (
+              <div className="text-xs text-[var(--text-muted)]">{getSubText()}</div>
+            )}
           </div>
         )}
       </div>

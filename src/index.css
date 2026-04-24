@@ -78,6 +78,11 @@
   *::-webkit-scrollbar-thumb:hover {
     background: var(--accent-hover);
   }
+
+  .reader-scroll {
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
 }
 
 @layer utilities {

@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
   ArrowLeft,
   ChevronDown,
   ChevronRight,
+  ChevronsUp,
   Search,
   SlidersHorizontal,
 } from 'lucide-react';
@@ -50,9 +51,12 @@ export default function LibraryView() {
   const [selectedDigest, setSelectedDigest] = useState<Digest | null>(null);
   const [isClosingDetail, setIsClosingDetail] = useState(false);
   const [listAnimation, setListAnimation] = useState('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const detailScrollRef = useRef<HTMLDivElement | null>(null);
+  const backButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const formatTimeAgo = (timestamp: number): string => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -107,6 +111,7 @@ export default function LibraryView() {
 
   const handleBackToLibrary = () => {
     setIsClosingDetail(true);
+    setShowBackToTop(false);
 
     window.setTimeout(() => {
       setSelectedDigest(null);
@@ -119,12 +124,83 @@ export default function LibraryView() {
     }, 220);
   };
 
+  const handleBackToTop = () => {
+    const container = detailScrollRef.current;
+    if (!container) return;
+
+    container.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (!selectedDigest) return;
+
+    const container = detailScrollRef.current;
+    const backButton = backButtonRef.current;
+    if (!container || !backButton) return;
+
+    let animationFrame = 0;
+    let targetScrollTop = container.scrollTop;
+
+    const updateBackToTopVisibility = () => {
+      const backBottom = backButton.offsetTop + backButton.offsetHeight;
+      setShowBackToTop(container.scrollTop > backBottom + 16);
+    };
+
+    const animateScroll = () => {
+      const distance = targetScrollTop - container.scrollTop;
+
+      if (Math.abs(distance) < 0.5) {
+        container.scrollTop = targetScrollTop;
+        animationFrame = 0;
+        updateBackToTopVisibility();
+        return;
+      }
+
+      container.scrollTop += distance * 0.14;
+      updateBackToTopVisibility();
+      animationFrame = window.requestAnimationFrame(animateScroll);
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      targetScrollTop = Math.max(
+        0,
+        Math.min(
+          container.scrollHeight - container.clientHeight,
+          targetScrollTop + event.deltaY * 0.85
+        )
+      );
+
+      if (!animationFrame) {
+        animationFrame = window.requestAnimationFrame(animateScroll);
+      }
+    };
+
+    const onScroll = () => {
+      targetScrollTop = container.scrollTop;
+      updateBackToTopVisibility();
+    };
+
+    updateBackToTopVisibility();
+    container.addEventListener('wheel', onWheel, { passive: false });
+    container.addEventListener('scroll', onScroll);
+
+    return () => {
+      container.removeEventListener('wheel', onWheel);
+      container.removeEventListener('scroll', onScroll);
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [selectedDigest]);
+
   if (selectedDigest) {
     return (
       <div className={`flex flex-col h-full ${isClosingDetail ? 'slide-out-right' : 'slide-left'}`}>
-        <div className="flex-1 overflow-y-auto p-8">
+        <div ref={detailScrollRef} className="reader-scroll flex-1 overflow-y-auto p-8">
           <div className="max-w-4xl mx-auto">
             <button
+              ref={backButtonRef}
               onClick={handleBackToLibrary}
               className="inline-flex items-center gap-2.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-sans text-base font-semibold mb-8"
             >
@@ -147,6 +223,17 @@ export default function LibraryView() {
             </div>
           </div>
         </div>
+
+        {showBackToTop && (
+          <button
+            type="button"
+            onClick={handleBackToTop}
+            className="fixed top-6 right-6 z-20 inline-flex items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface)]/95 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] shadow-lg shadow-black/10 backdrop-blur hover:bg-[var(--hover)] transition-all duration-150 animate-fade-in"
+          >
+            <ChevronsUp size={16} strokeWidth={2.4} />
+            <span>Top</span>
+          </button>
+        )}
       </div>
     );
   }
